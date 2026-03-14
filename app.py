@@ -13,8 +13,13 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 # ==========================================
-# Dashboard Routes
+# Dashboard & Auth Routes
 # ==========================================
+@app.route('/login')
+def login():
+    """Render the mock login page for the DBMS lab miniproject."""
+    return render_template('login.html')
+
 @app.route('/')
 def dashboard():
     """Render the main dashboard with summary statistics."""

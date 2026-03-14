@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    
+    <!-- Tailwind CSS (via CDN for simplicity in lab projects) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- AOS Animation CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="antialiased text-slate-200">
+
+    <!-- Navigation Bar -->
+    <nav class="glass-nav fixed w-full z-50 top-0 start-0 border-b border-gray-600">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex">
+            <!-- Logo -->
+            <div class="flex-shrink-0 flex items-center">
+              <a href="{{ url_for('dashboard') }}" class="flex items-center gap-2 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                <i data-lucide="library" class="text-blue-400"></i> LMS
+              </a>
+            </div>
+            <!-- Links -->
+            <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+              <a href="{{ url_for('dashboard') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-blue-400 hover:text-blue-400 text-sm font-medium transition-colors">
+                Dashboard
+              </a>
+              <a href="{{ url_for('books') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-blue-400 hover:text-blue-400 text-sm font-medium transition-colors">
+                Books
+              </a>
+              <a href="{{ url_for('users') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-blue-400 hover:text-blue-400 text-sm font-medium transition-colors">
+                Users
+              </a>
+              <a href="{{ url_for('borrow') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-blue-400 hover:text-blue-400 text-sm font-medium transition-colors">
+                Issue Book
+              </a>
+              <a href="{{ url_for('return_books') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-blue-400 hover:text-blue-400 text-sm font-medium transition-colors">
+                Returns
+              </a>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+              <button class="glass-btn p-2 rounded-full text-slate-300 hover:text-white">
+                  <i data-lucide="bell" class="w-5 h-5"></i>
+              </button>
+              <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center font-bold text-white shadow-lg">
+                  A
+              </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-nav py-6 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-slate-400">
+            &copy; 2026 Library Management System. DBMS Lab Mini Project. <br/> Developed with Flask and MongoDB.
+        </div>
+    </footer>
+
+    <!-- Lucide Icons Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- AOS Animation Library -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

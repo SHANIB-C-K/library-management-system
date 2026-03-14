@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8" data-aos="fade-down">
+    <div>
+        <h1 class="text-3xl font-bold text-white mb-2">Book Inventory</h1>
+        <p class="text-slate-400">Manage library books and add new categories.</p>
+    </div>
+    <div class="mt-4 md:mt-0 flex gap-4">
+        <button onclick="document.getElementById('addCategoryModal').showModal()" class="glass-btn px-4 py-2 rounded-lg text-white font-medium flex items-center gap-2">
+            <i data-lucide="tag" class="w-4 h-4"></i> Add Category
+        </button>
+        <button onclick="document.getElementById('addBookModal').showModal()" class="glass-btn px-4 py-2 rounded-lg bg-blue-600/50 hover:bg-blue-600/70 text-white font-medium flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i> Add Book
+        </button>
+    </div>
+</div>
+
+<!-- Books Table -->
+<div class="glass-panel overflow-hidden" data-aos="fade-up">
+    <div class="overflow-x-auto p-2">
+        <table class="w-full text-sm text-left">
+            <thead>
+                <tr>
+                    <th class="font-medium text-slate-300 rounded-tl-lg">Title</th>
+                    <th class="font-medium text-slate-300">Author</th>
+                    <th class="font-medium text-slate-300">ISBN</th>
+                    <th class="font-medium text-slate-300">Category</th>
+                    <th class="font-medium text-slate-300">Available / Total</th>
+                    <th class="font-medium text-slate-300 rounded-tr-lg text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                <tr class="border-b border-gray-700/50 hover:bg-white/5 transition-colors group">
+                    <td class="font-medium text-white py-4 px-6">{{ book.title }}</td>
+                    <td class="text-slate-300 py-4 px-6">{{ book.author }}</td>
+                    <td class="text-slate-400 py-4 px-6">{{ book.isbn }}</td>
+                    <td class="py-4 px-6">
+                        {% if book.category_info %}
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300">
+                                {{ book.category_info[0].name }}
+                            </span>
+                        {% else %}
+                            <span class="text-slate-500 italic">None</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6">
+                        <div class="flex items-center gap-2">
+                            <span class="{% if book.available_copies > 0 %}text-green-400{% else %}text-red-400{% endif %} font-bold">
+                                {{ book.available_copies }}
+                            </span>
+                            <span class="text-slate-500">/ {{ book.total_copies }}</span>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 text-right">
+                        <button onclick="confirmDeletion('{{ url_for('delete_book', book_id=book._id) }}', 'Delete Book?')" class="text-red-400 hover:text-red-300 transition-colors p-2 glass-btn rounded-lg opacity-0 group-hover:opacity-100">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-8 text-slate-400">No books found in the inventory.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Book Modal -->
+<dialog id="addBookModal" class="p-0">
+    <div class="glass-panel p-6 border border-gray-600 bg-slate-900 rounded-2xl shadow-2xl relative">
+        <button onclick="document.getElementById('addBookModal').close()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <h3 class="text-xl font-bold text-white mb-6">Add New Book</h3>
+        <form action="{{ url_for('add_book') }}" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Title</label>
+                <input type="text" name="title" required class="glass-input w-full px-4 py-2 rounded-lg">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Author</label>
+                <input type="text" name="author" required class="glass-input w-full px-4 py-2 rounded-lg">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">ISBN</label>
+                    <input type="text" name="isbn" required class="glass-input w-full px-4 py-2 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Copies count</label>
+                    <input type="number" name="copies" min="1" required class="glass-input w-full px-4 py-2 rounded-lg">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Category</label>
+                <select name="category_id" class="glass-input w-full px-4 py-2 rounded-lg appearance-none bg-slate-800 text-white">
+                    <option value="">Select Category</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat._id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="pt-4 flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('addBookModal').close()" class="px-4 py-2 text-slate-400 hover:text-white">Cancel</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg shadow-lg shadow-blue-500/30 transition-all font-medium">Save Book</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<!-- Add Category Modal -->
+<dialog id="addCategoryModal" class="p-0">
+    <div class="glass-panel p-6 border border-gray-600 bg-slate-900 rounded-2xl shadow-2xl relative">
+        <button onclick="document.getElementById('addCategoryModal').close()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <h3 class="text-xl font-bold text-white mb-6">Add New Category</h3>
+        <form action="{{ url_for('add_category') }}" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Category Name</label>
+                <input type="text" name="name" required class="glass-input w-full px-4 py-2 rounded-lg">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-1">Description</label>
+                <textarea name="description" rows="3" class="glass-input w-full px-4 py-2 rounded-lg"></textarea>
+            </div>
+            <div class="pt-4 flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('addCategoryModal').close()" class="px-4 py-2 text-slate-400 hover:text-white">Cancel</button>
+                <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-lg shadow-lg shadow-purple-500/30 transition-all font-medium">Save Category</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+{% endblock %}

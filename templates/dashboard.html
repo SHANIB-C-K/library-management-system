@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8" data-aos="fade-down">
+    <h1 class="text-3xl font-bold text-white mb-2">Dashboard</h1>
+    <p class="text-slate-400">Welcome to the Library Management System Overview.</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    
+    <div class="glass-panel p-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="flex items-center gap-4">
+            <div class="p-4 rounded-xl bg-blue-500/20 text-blue-400">
+                <i data-lucide="book-open" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <p class="text-sm text-slate-400 font-medium">Total Books</p>
+                <h3 class="text-2xl font-bold text-white mt-1">{{ stats.total_books }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-panel p-6" data-aos="fade-up" data-aos-delay="200">
+        <div class="flex items-center gap-4">
+            <div class="p-4 rounded-xl bg-purple-500/20 text-purple-400">
+                <i data-lucide="users" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <p class="text-sm text-slate-400 font-medium">Members (Users)</p>
+                <h3 class="text-2xl font-bold text-white mt-1">{{ stats.total_users }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-panel p-6" data-aos="fade-up" data-aos-delay="300">
+        <div class="flex items-center gap-4">
+            <div class="p-4 rounded-xl bg-green-500/20 text-green-400">
+                <i data-lucide="arrow-right-left" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <p class="text-sm text-slate-400 font-medium">Active Borrows</p>
+                <h3 class="text-2xl font-bold text-white mt-1">{{ stats.active_borrows }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-panel p-6" data-aos="fade-up" data-aos-delay="400">
+        <div class="flex items-center gap-4">
+            <div class="p-4 rounded-xl bg-orange-500/20 text-orange-400">
+                <i data-lucide="tags" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <p class="text-sm text-slate-400 font-medium">Categories</p>
+                <h3 class="text-2xl font-bold text-white mt-1">{{ stats.total_categories }}</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Recent Borrows Table -->
+<div class="glass-panel overflow-hidden" data-aos="fade-up" data-aos-delay="500">
+    <div class="p-6 border-b border-gray-600/50 flex justify-between items-center">
+        <h2 class="text-xl font-semibold text-white">Recent Activity (Borrows)</h2>
+        <a href="{{ url_for('borrow') }}" class="text-sm text-blue-400 hover:text-blue-300">View All</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead>
+                <tr>
+                    <th class="font-medium text-slate-300">Book</th>
+                    <th class="font-medium text-slate-300">User</th>
+                    <th class="font-medium text-slate-300">Borrow Date</th>
+                    <th class="font-medium text-slate-300">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in recent_borrows %}
+                <tr class="border-b border-gray-700/50 hover:bg-white/5 transition-colors">
+                    <td class="font-medium text-white py-4 px-6">
+                        {{ record.book_info[0].title if record.book_info else 'Unknown' }}
+                    </td>
+                    <td class="text-slate-300 py-4 px-6">
+                        {{ record.user_info[0].name if record.user_info else 'Unknown' }}
+                    </td>
+                    <td class="text-slate-400 py-4 px-6">
+                        {% if record.borrow_date %}
+                            {{ record.borrow_date.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6">
+                        {% if record.status == 'borrowed' %}
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400">Borrowed</span>
+                        {% else %}
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Returned</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center py-8 text-slate-400">No recent activity found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

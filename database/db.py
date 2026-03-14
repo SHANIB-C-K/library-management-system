@@ -3,17 +3,10 @@ from bson.objectid import ObjectId
 from config import Config
 from datetime import datetime
 
-try:
-    # Connect to MongoDB
-    client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=5000)
-    # Changing DB Name to the requested library_db
-    db = client['library_db']
-    
-    # Check connection
-    client.server_info()
-    print("Successfully connected to MongoDB 'library_db'.")
-except Exception as e:
-    print(f"Error connecting to MongoDB: {e}")
+# Connect to MongoDB
+# MongoClient is lazy; we don't need server_info() to block on import
+client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=5000)
+db = client['library_db']
 
 # Collections Definition
 users_collection = db['users']

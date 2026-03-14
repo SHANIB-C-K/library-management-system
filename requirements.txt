@@ -3,3 +3,4 @@ pymongo
 dnspython
 flask-session
 python-dotenv
+gunicorn

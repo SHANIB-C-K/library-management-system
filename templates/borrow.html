@@ -54,55 +54,40 @@
             <p class="text-slate-400">Books that are out and not yet returned.</p>
         </div>
         
-        <div class="glass-panel overflow-hidden">
-            <div class="overflow-x-auto p-2">
-                <table class="w-full text-sm text-left">
-                    <thead>
-                        <tr>
-                            <th class="font-medium text-slate-300 rounded-tl-lg">Book Title</th>
-                            <th class="font-medium text-slate-300">Member</th>
-                            <th class="font-medium text-slate-300">Borrow Date</th>
-                            <th class="font-medium text-slate-300 rounded-tr-lg">Due Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in active_borrows %}
-                        <tr class="border-b border-gray-700/50 hover:bg-white/5 transition-colors">
-                            <td class="font-medium text-white py-4 px-6">
-                                <span class="flex items-center gap-2">
-                                    <i data-lucide="book" class="w-4 h-4 text-blue-400"></i>
-                                    {{ record.book_info[0].title }}
-                                </span>
-                            </td>
-                            <td class="text-slate-300 py-4 px-6">
-                                <span class="flex items-center gap-2">
-                                    <i data-lucide="user" class="w-4 h-4 text-purple-400"></i>
-                                    {{ record.user_info[0].name }}
-                                </span>
-                            </td>
-                            <td class="text-slate-400 py-4 px-6">
-                                {{ record.borrow_date.strftime('%b %d, %Y') }}
-                            </td>
-                            <td class="font-medium py-4 px-6">
-                                <!-- Logic to highlight overdue could be added here later -->
-                                <span class="text-orange-300 bg-orange-500/10 px-2 py-1 rounded-sm">
-                                    {{ record.due_date.strftime('%b %d, %Y') if record.due_date else 'N/A' }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center py-12 text-slate-400">
-                                <div class="flex flex-col items-center justify-center">
-                                    <i data-lucide="check-circle" class="w-8 h-8 text-green-500/50 mb-3"></i>
-                                    <p>No active borrows. All books are available.</p>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="space-y-4">
+            {% for record in active_borrows %}
+            <div class="glass-panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:-translate-y-1 transition-transform">
+                <div class="flex-1">
+                    <h3 class="text-white font-bold text-lg mb-1 flex items-center gap-2">
+                        <i data-lucide="book" class="w-4 h-4 text-blue-400"></i>
+                        {{ record.book_info[0].title }}
+                    </h3>
+                    <p class="text-slate-400 text-sm flex items-center gap-2">
+                        <i data-lucide="user" class="w-4 h-4 text-purple-400"></i>
+                        Borrowed by: <span class="text-slate-300 font-medium">{{ record.user_info[0].name }}</span>
+                    </p>
+                </div>
+                
+                <div class="flex flex-col sm:items-end gap-2 text-sm">
+                    <div class="bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-700 w-fit">
+                        <span class="text-slate-500 text-xs uppercase tracking-wider block mb-0.5">Borrowed On</span>
+                        <span class="text-slate-300">{{ record.borrow_date.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    <div class="bg-orange-500/10 border border-orange-500/20 px-3 py-1.5 rounded-md w-fit">
+                        <span class="text-orange-400/70 text-xs uppercase tracking-wider block mb-0.5">Due Date</span>
+                        <span class="text-orange-300 font-medium">{{ record.due_date.strftime('%b %d, %Y') if record.due_date else 'N/A' }}</span>
+                    </div>
+                </div>
             </div>
+            {% else %}
+            <div class="glass-panel p-12 text-center flex flex-col items-center justify-center">
+                <div class="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mb-4 border border-green-500/20">
+                    <i data-lucide="check-circle" class="w-8 h-8 text-green-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-white mb-2">Everything is perfectly synced</h3>
+                <p class="text-slate-400">There are currently no active borrows. All books are available.</p>
+            </div>
+            {% endfor %}
         </div>
     </div>
     

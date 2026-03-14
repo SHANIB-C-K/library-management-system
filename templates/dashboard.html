@@ -59,53 +59,50 @@
 
 </div>
 
-<!-- Recent Borrows Table -->
+<!-- Recent Borrows Card List -->
 <div class="glass-panel overflow-hidden" data-aos="fade-up" data-aos-delay="500">
     <div class="p-6 border-b border-gray-600/50 flex justify-between items-center">
         <h2 class="text-xl font-semibold text-white">Recent Activity (Borrows)</h2>
         <a href="{{ url_for('borrow') }}" class="text-sm text-blue-400 hover:text-blue-300">View All</a>
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm text-left">
-            <thead>
-                <tr>
-                    <th class="font-medium text-slate-300">Book</th>
-                    <th class="font-medium text-slate-300">User</th>
-                    <th class="font-medium text-slate-300">Borrow Date</th>
-                    <th class="font-medium text-slate-300">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for record in recent_borrows %}
-                <tr class="border-b border-gray-700/50 hover:bg-white/5 transition-colors">
-                    <td class="font-medium text-white py-4 px-6">
-                        {{ record.book_info[0].title if record.book_info else 'Unknown' }}
-                    </td>
-                    <td class="text-slate-300 py-4 px-6">
-                        {{ record.user_info[0].name if record.user_info else 'Unknown' }}
-                    </td>
-                    <td class="text-slate-400 py-4 px-6">
-                        {% if record.borrow_date %}
-                            {{ record.borrow_date.strftime('%Y-%m-%d %H:%M') }}
-                        {% else %}
-                            N/A
-                        {% endif %}
-                    </td>
-                    <td class="py-4 px-6">
-                        {% if record.status == 'borrowed' %}
-                            <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400">Borrowed</span>
-                        {% else %}
-                            <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">Returned</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4" class="text-center py-8 text-slate-400">No recent activity found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="p-4 space-y-3 bg-slate-900/40">
+        {% for record in recent_borrows %}
+        <div class="glass-panel p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group hover:border-blue-500/30 transition-colors">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-slate-800/80 flex items-center justify-center border border-slate-700">
+                    <i data-lucide="book-open" class="w-5 h-5 text-blue-400 border-blue-400"></i>
+                </div>
+                <div>
+                    <h4 class="text-white font-medium text-base mb-0.5">
+                        {{ record.book_info[0].title if record.book_info else 'Unknown Book' }}
+                    </h4>
+                    <p class="text-slate-400 text-xs flex items-center gap-1.5">
+                        <i data-lucide="user" class="w-3 h-3 text-purple-400"></i>
+                        {{ record.user_info[0].name if record.user_info else 'Unknown User' }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between sm:justify-end gap-6 ml-14 sm:ml-0">
+                <div class="text-xs text-slate-500 text-left sm:text-right">
+                    <span class="block uppercase tracking-wider mb-0.5">Date</span>
+                    <span class="text-slate-300">{{ record.borrow_date.strftime('%b %d, %H:%M') if record.borrow_date else 'N/A' }}</span>
+                </div>
+                <div>
+                    {% if record.status == 'borrowed' %}
+                        <span class="inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-orange-500/10 text-orange-400 border border-orange-500/20">Borrowed</span>
+                    {% else %}
+                        <span class="inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-green-500/10 text-green-400 border border-green-500/20">Returned</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="p-8 text-center flex flex-col items-center justify-center">
+            <i data-lucide="activity" class="w-8 h-8 text-slate-600 mb-3 block mx-auto"></i>
+            <p class="text-slate-400">No recent activity found.</p>
+        </div>
+        {% endfor %}
     </div>
 </div>
 

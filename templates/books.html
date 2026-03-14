@@ -27,94 +27,102 @@
     </div>
 </div>
 
-<!-- Books Table -->
-<div class="glass-panel overflow-hidden" data-aos="fade-up" data-aos-delay="100">
-    <div class="overflow-x-auto p-2">
-        <table class="w-full text-sm text-left" id="booksTable">
-            <thead>
-                <tr>
-                    <th class="font-medium text-slate-300 rounded-tl-lg">Title</th>
-                    <th class="font-medium text-slate-300">Author</th>
-                    <th class="font-medium text-slate-300">ISBN</th>
-                    <th class="font-medium text-slate-300">Category</th>
-                    <th class="font-medium text-slate-300">Available / Total</th>
-                    <th class="font-medium text-slate-300 rounded-tr-lg text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for book in books %}
-                <tr class="border-b border-gray-700/50 hover:bg-white/5 transition-colors group">
-                    <td class="font-medium text-white py-4 px-6">{{ book.title }}</td>
-                    <td class="text-slate-300 py-4 px-6">{{ book.author }}</td>
-                    <td class="text-slate-400 py-4 px-6">{{ book.isbn }}</td>
-                    <td class="py-4 px-6">
-                        {% if book.category %}
-                            <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300">
-                                {{ book.category }}
-                            </span>
-                        {% else %}
-                            <span class="text-slate-500 italic">None</span>
-                        {% endif %}
-                    </td>
-                    <td class="py-4 px-6">
-                        <div class="flex items-center gap-2">
-                            <span class="{% if book.available > 0 %}text-green-400{% else %}text-red-400{% endif %} font-bold">
-                                {{ book.available }}
-                            </span>
-                            <span class="text-slate-500">/ {{ book.quantity }}</span>
-                        </div>
-                    </td>
-                    <td class="py-4 px-6 text-right">
-                        <!-- Added edit capability (placeholder for actual edit modal flow to keep simple) -->
-                        <button onclick="document.getElementById('editBookModal-{{ book._id }}').showModal()" class="text-blue-400 hover:text-blue-300 transition-colors p-2 glass-btn rounded-lg opacity-0 group-hover:opacity-100 mr-2">
-                            <i data-lucide="edit-3" class="w-4 h-4"></i>
-                        </button>
-                        <button onclick="confirmDeletion('{{ url_for('delete_book', book_id=book._id) }}', 'Delete Book?')" class="text-red-400 hover:text-red-300 transition-colors p-2 glass-btn rounded-lg opacity-0 group-hover:opacity-100">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </td>
-                </tr>
-                
-                <!-- Edit Book Modal (Iterative) -->
-                <dialog id="editBookModal-{{ book._id }}" class="p-0">
-                    <div class="glass-panel p-6 border border-gray-600 bg-slate-900 rounded-2xl shadow-2xl relative">
-                        <button onclick="document.getElementById('editBookModal-{{ book._id }}').close()" type="button" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-                            <i data-lucide="x" class="w-5 h-5"></i>
-                        </button>
-                        <h3 class="text-xl font-bold text-white mb-6">Edit Book Inventory</h3>
-                        <form action="{{ url_for('edit_book', book_id=book._id) }}" method="POST" class="space-y-4 text-left">
-                            <input type="hidden" name="title" value="{{ book.title }}">
-                            <input type="hidden" name="author" value="{{ book.author }}">
-                            <input type="hidden" name="isbn" value="{{ book.isbn }}">
-                            <!-- Retains current category info -->
-                            {% for cat in categories %}
-                                {% if cat.name == book.category %}
-                                    <input type="hidden" name="category_id" value="{{ cat._id }}">
-                                {% endif %}
-                            {% endfor %}
-                            
-                            <div class="col-span-2">
-                                <label class="block text-sm font-medium text-slate-300 mb-1">Add MORE Copies (Current: {{ book.quantity }})</label>
-                                <input type="number" name="added_copies" min="0" value="0" required class="glass-input w-full px-4 py-2 rounded-lg">
-                                <p class="text-xs text-slate-500 mt-2">You can incrementally add copies. Setting 0 will just save the current details.</p>
-                            </div>
-                            
-                            <div class="pt-4 flex justify-end gap-3">
-                                <button type="button" onclick="document.getElementById('editBookModal-{{ book._id }}').close()" class="px-4 py-2 text-slate-400 hover:text-white">Cancel</button>
-                                <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg shadow-lg shadow-blue-500/30 transition-all font-medium">Update Book</button>
-                            </div>
-                        </form>
-                    </div>
-                </dialog>
-                
+<!-- Books Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="booksGrid" data-aos="fade-up" data-aos-delay="100">
+    {% for book in books %}
+    <div class="glass-panel p-6 flex flex-col h-full relative group book-card">
+        <!-- Floating Actions -->
+        <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onclick="document.getElementById('editBookModal-{{ book._id }}').showModal()" class="p-2 glass-btn rounded-lg text-blue-400 hover:text-blue-300">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+            </button>
+            <button onclick="confirmDeletion('{{ url_for('delete_book', book_id=book._id) }}', 'Delete Book?')" class="p-2 glass-btn rounded-lg text-red-400 hover:text-red-300">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Book Info -->
+        <div class="mb-4 pr-16 search-content">
+            <h3 class="text-xl font-bold text-white mb-1 leading-tight book-title">{{ book.title }}</h3>
+            <p class="text-slate-400 text-sm font-medium book-author">{{ book.author }}</p>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-2 gap-y-3 gap-x-4 mb-6 mt-auto text-sm">
+            <div>
+                <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">ISBN</p>
+                <p class="text-slate-300 book-isbn">{{ book.isbn }}</p>
+            </div>
+            <div>
+                <p class="text-slate-500 text-xs uppercase tracking-wider mb-1">Category</p>
+                {% if book.category %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                        {{ book.category }}
+                    </span>
                 {% else %}
-                <tr id="emptyBooksRow">
-                    <td colspan="6" class="text-center py-8 text-slate-400">No books found in the inventory.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    <span class="text-slate-500 italic">None</span>
+                {% endif %}
+            </div>
+            <div class="col-span-2 bg-slate-800/50 rounded-lg p-3 border border-slate-700/50 mt-2 flex justify-between items-center">
+                <span class="text-slate-400">Availability</span>
+                <div class="flex items-center gap-2">
+                    <span class="{% if book.available > 0 %}text-emerald-400{% else %}text-rose-400{% endif %} font-bold text-lg">
+                        {{ book.available }}
+                    </span>
+                    <span class="text-slate-500 font-medium">/ {{ book.quantity }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Book Modal (Iterative) -->
+        <dialog id="editBookModal-{{ book._id }}" class="p-0">
+            <div class="glass-panel p-6 border border-gray-600 bg-slate-900 rounded-2xl shadow-2xl relative">
+                <button onclick="document.getElementById('editBookModal-{{ book._id }}').close()" type="button" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+                <h3 class="text-xl font-bold text-white mb-6">Edit Book Inventory</h3>
+                <form action="{{ url_for('edit_book', book_id=book._id) }}" method="POST" class="space-y-4 text-left">
+                    <input type="hidden" name="title" value="{{ book.title }}">
+                    <input type="hidden" name="author" value="{{ book.author }}">
+                    <input type="hidden" name="isbn" value="{{ book.isbn }}">
+                    <!-- Retains current category info -->
+                    {% for cat in categories %}
+                        {% if cat.name == book.category %}
+                            <input type="hidden" name="category_id" value="{{ cat._id }}">
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Add MORE Copies (Current: {{ book.quantity }})</label>
+                        <input type="number" name="added_copies" min="0" value="0" required class="glass-input w-full px-4 py-2 rounded-lg">
+                        <p class="text-xs text-slate-500 mt-2">You can incrementally add copies. Setting 0 will just save the current details.</p>
+                    </div>
+                    
+                    <div class="pt-4 flex justify-end gap-3">
+                        <button type="button" onclick="document.getElementById('editBookModal-{{ book._id }}').close()" class="px-4 py-2 text-slate-400 hover:text-white">Cancel</button>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg shadow-lg shadow-blue-500/30 transition-all font-medium">Update Book</button>
+                    </div>
+                </form>
+            </div>
+        </dialog>
     </div>
+    {% else %}
+    <div id="emptyBooksMsg" class="col-span-full glass-panel py-16 flex flex-col items-center justify-center text-center">
+        <div class="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mb-4">
+            <i data-lucide="book-x" class="w-8 h-8 text-slate-500"></i>
+        </div>
+        <h3 class="text-lg font-medium text-white mb-1">No Books Found</h3>
+        <p class="text-slate-400">Your inventory is currently empty.</p>
+    </div>
+    {% endfor %}
+</div>
+<!-- JS Empty State Placeholder -->
+<div id="jsEmptySearchMsg" class="hidden glass-panel py-16 flex flex-col items-center justify-center text-center w-full mt-6">
+    <div class="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mb-4">
+        <i data-lucide="search-x" class="w-8 h-8 text-slate-500"></i>
+    </div>
+    <h3 class="text-lg font-medium text-white mb-1">No matches</h3>
+    <p class="text-slate-400">Try adjusting your search query.</p>
 </div>
 
 <!-- Add Book Modal -->
@@ -189,36 +197,37 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const searchInput = document.getElementById('bookSearchInput');
-        const booksTable = document.getElementById('booksTable');
-        const rows = booksTable.querySelectorAll('tbody tr:not(#emptyBooksRow)');
-        const emptyRow = document.getElementById('emptyBooksRow');
+        const bookCards = document.querySelectorAll('.book-card');
+        const jsEmptyMsg = document.getElementById('jsEmptySearchMsg');
 
-        searchInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
-            let visibleCount = 0;
-
-            rows.forEach(row => {
-                // Combine text content from Title, Author, and ISBN columns
-                const searchContent = Array.from(row.cells).slice(0, 3).map(cell => cell.textContent.toLowerCase()).join(' ');
-                
-                if (searchContent.includes(query)) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
+        if(searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                let visibleCount = 0;
+    
+                bookCards.forEach(card => {
+                    const title = card.querySelector('.book-title').textContent.toLowerCase();
+                    const author = card.querySelector('.book-author').textContent.toLowerCase();
+                    const isbn = card.querySelector('.book-isbn').textContent.toLowerCase();
+                    const searchContent = `${title} ${author} ${isbn}`;
+                    
+                    if (searchContent.includes(query)) {
+                        card.style.display = 'flex';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+    
+                if (jsEmptyMsg) {
+                    if (visibleCount === 0 && bookCards.length > 0) {
+                        jsEmptyMsg.classList.remove('hidden');
+                    } else {
+                        jsEmptyMsg.classList.add('hidden');
+                    }
                 }
             });
-
-            // Toggle empty state if no rows match
-            if (emptyRow) {
-                if (visibleCount === 0 && rows.length > 0) {
-                    emptyRow.style.display = '';
-                    emptyRow.children[0].textContent = "No books found matching criteria.";
-                } else {
-                    emptyRow.style.display = 'none';
-                }
-            }
-        });
+        }
     });
 </script>
 {% endblock %}

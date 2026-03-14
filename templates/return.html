@@ -60,58 +60,52 @@
             <p class="text-slate-400">Recently returned books log.</p>
         </div>
         
-        <div class="glass-panel overflow-hidden">
-            <div class="overflow-x-auto p-2">
-                <table class="w-full text-sm text-left">
-                    <thead>
-                        <tr>
-                            <th class="font-medium text-slate-300 rounded-tl-lg">Book & Member</th>
-                            <th class="font-medium text-slate-300">Return Date</th>
-                            <th class="font-medium text-slate-300">Condition</th>
-                            <th class="font-medium text-slate-300 rounded-tr-lg">Fine</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for return_item in returns %}
-                        <tr class="border-b border-gray-700/50 hover:bg-white/5 transition-colors">
-                            <td class="font-medium py-4 px-6">
-                                <div class="text-white">
-                                    {{ return_item.book_info[0].title if return_item.book_info else 'Unknown Book' }}
-                                </div>
-                                <div class="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                                    <i data-lucide="user" class="w-3 h-3"></i> 
-                                    {{ return_item.user_info[0].name if return_item.user_info else 'Unknown User' }}
-                                </div>
-                            </td>
-                            <td class="text-slate-400 py-4 px-6">
-                                {{ return_item.return_date.strftime('%b %d, %Y') }}
-                            </td>
-                            <td class="py-4 px-6">
-                                {% if return_item.condition == 'good' %}
-                                    <span class="text-green-400 flex items-center gap-1"><i data-lucide="check" class="w-4 h-4"></i> Good</span>
-                                {% elif return_item.condition == 'fair' %}
-                                    <span class="text-yellow-400 flex items-center gap-1">Fair</span>
-                                {% else %}
-                                    <span class="text-red-400 flex items-center gap-1"><i data-lucide="alert-triangle" class="w-4 h-4"></i> {{ return_item.condition | capitalize }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="font-medium py-4 px-6 {% if return_item.fine > 0 %}text-red-400{% else %}text-slate-500{% endif %}">
-                                ${{ "%.2f"|format(return_item.fine) }}
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center py-12 text-slate-400">
-                                <div class="flex flex-col items-center justify-center">
-                                    <i data-lucide="history" class="w-8 h-8 text-slate-600 mb-3"></i>
-                                    <p>No return history available yet.</p>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="space-y-4">
+            {% for return_item in returns %}
+            <div class="glass-panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:-translate-y-1 transition-transform border-l-4 {% if return_item.condition == 'good' %}border-l-green-500/50{% elif return_item.condition == 'fair' %}border-l-yellow-500/50{% else %}border-l-red-500/50{% endif %}">
+                
+                <div class="flex-1">
+                    <h3 class="text-white font-bold text-lg mb-1">
+                        {{ return_item.book_info[0].title if return_item.book_info else 'Unknown Book' }}
+                    </h3>
+                    <p class="text-slate-400 text-sm flex items-center gap-2">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                        {{ return_item.user_info[0].name if return_item.user_info else 'Unknown User' }}
+                    </p>
+                </div>
+                
+                <div class="flex flex-col sm:items-end gap-2 text-sm w-full sm:w-auto">
+                    <div class="flex justify-between sm:justify-end items-center gap-4 w-full">
+                        <div class="text-slate-400 text-xs text-right">
+                            <span class="block uppercase tracking-wider text-slate-500 mb-0.5">Returned On</span>
+                            {{ return_item.return_date.strftime('%b %d, %Y') }}
+                        </div>
+                        <div class="bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-700 min-w-[100px] text-center">
+                            {% if return_item.condition == 'good' %}
+                                <span class="text-green-400 font-medium flex items-center justify-center gap-1.5"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Good</span>
+                            {% elif return_item.condition == 'fair' %}
+                                <span class="text-yellow-400 font-medium">Fair</span>
+                            {% else %}
+                                <span class="text-red-400 font-medium flex items-center justify-center gap-1.5"><i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> {{ return_item.condition | capitalize }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if return_item.fine > 0 %}
+                    <div class="bg-red-500/10 border border-red-500/20 px-3 py-1 rounded w-full sm:w-auto text-right">
+                        <span class="text-red-400 font-bold flex items-center justify-end gap-1"><i data-lucide="receipt" class="w-3 h-3"></i> Fine: ${{ "%.2f"|format(return_item.fine) }}</span>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
+            {% else %}
+            <div class="glass-panel p-12 text-center flex flex-col items-center justify-center">
+                <div class="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mb-4">
+                    <i data-lucide="history" class="w-8 h-8 text-slate-500"></i>
+                </div>
+                <h3 class="text-lg font-medium text-white mb-2">No returns processed yet</h3>
+                <p class="text-slate-400">Returned books will appear here along with condition assessments.</p>
+            </div>
+            {% endfor %}
         </div>
     </div>
     

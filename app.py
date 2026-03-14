@@ -3,10 +3,11 @@ from bson.objectid import ObjectId
 from datetime import datetime
 from config import Config
 
-# Import collections from our database module
+# Import collections and helpers from our database module
 from database.db import (
     users_collection, books_collection, borrow_records_collection,
-    returns_collection, categories_collection
+    returns_collection, categories_collection,
+    insert_book, get_all_books, borrow_book, return_book, add_user, get_user_list
 )
 
 app = Flask(__name__)
@@ -68,25 +69,21 @@ def books():
     return render_template('books.html', books=all_books, categories=all_categories)
 
 @app.route('/books/add', methods=['POST'])
-def add_book():
+def add_new_book():
     """Create a new book record."""
     title = request.form.get('title')
     author = request.form.get('author')
     isbn = request.form.get('isbn')
     category_id = request.form.get('category_id')
+    
+    category = categories_collection.find_one({'_id': ObjectId(category_id)}) if category_id else None
+    cat_name = category['name'] if category else 'Uncategorized'
+    
     copies = int(request.form.get('copies', 0))
     
-    new_book = {
-        'title': title,
-        'author': author,
-        'isbn': isbn,
-        'category_id': ObjectId(category_id) if category_id else None,
-        'total_copies': copies,
-        'available_copies': copies,
-        'created_at': datetime.now()
-    }
+    # Using the helper function
+    insert_book(title, author, cat_name, isbn, copies, available=copies)
     
-    books_collection.insert_one(new_book)
     return redirect(url_for('books'))
 
 @app.route('/books/edit/<book_id>', methods=['POST'])
@@ -98,6 +95,9 @@ def edit_book(book_id):
     category_id = request.form.get('category_id')
     added_copies = int(request.form.get('added_copies', 0))
     
+    category = categories_collection.find_one({'_id': ObjectId(category_id)}) if category_id else None
+    cat_name = category['name'] if category else 'Uncategorized'
+    
     # Update book details and incrementally adjust copies
     books_collection.update_one(
         {'_id': ObjectId(book_id)},
@@ -106,11 +106,11 @@ def edit_book(book_id):
                 'title': title,
                 'author': author,
                 'isbn': isbn,
-                'category_id': ObjectId(category_id) if category_id else None
+                'category': cat_name
             },
             '$inc': {
-                'total_copies': added_copies,
-                'available_copies': added_copies
+                'quantity': added_copies,
+                'available': added_copies
             }
         }
     )
@@ -154,26 +154,20 @@ def add_category():
 @app.route('/users')
 def users():
     """Display all users."""
-    all_users = list(users_collection.find())
+    all_users = get_user_list()
     return render_template('users.html', users=all_users)
 
 @app.route('/users/add', methods=['POST'])
-def add_user():
+def add_new_user():
     """Create a new user (Member/Student)."""
     name = request.form.get('name')
     email = request.form.get('email')
     phone = request.form.get('phone')
     role = request.form.get('role', 'student')
     
-    new_user = {
-        'name': name,
-        'email': email,
-        'phone': phone,
-        'role': role,
-        'created_at': datetime.now()
-    }
+    # Using helper function (generating a mock password for now)
+    add_user(name, email, f"{name.lower()}123", role, phone)
     
-    users_collection.insert_one(new_user)
     return redirect(url_for('users'))
 
 @app.route('/users/delete/<user_id>', methods=['POST'])
@@ -205,8 +199,8 @@ def borrow():
     ]))
     
     # We only want to show available books and valid users in the dropdowns
-    available_books = list(books_collection.find({'available_copies': {'$gt': 0}}))
-    all_users = list(users_collection.find())
+    available_books = list(books_collection.find({'available': {'$gt': 0}}))
+    all_users = get_user_list()
     
     return render_template('borrow.html', 
                            active_borrows=active_borrows,
@@ -220,29 +214,13 @@ def issue_book():
     user_id = request.form.get('user_id')
     due_date = request.form.get('due_date')
     
-    book_oid = ObjectId(book_id)
+    borrow_date = datetime.now()
     
-    # Double check availability (concurrency safety principle for DBMS)
-    book = books_collection.find_one({'_id': book_oid})
-    if not book or book.get('available_copies', 0) <= 0:
-        return redirect(url_for('borrow'))
-        
-    # 1. Decrement available copies
-    books_collection.update_one(
-        {'_id': book_oid},
-        {'$inc': {'available_copies': -1}}
-    )
+    # Call the helper method from the database
+    res = borrow_book(user_id, book_id, borrow_date=borrow_date)
     
-    # 2. Add borrow record
-    borrow_record = {
-        'book_id': book_oid,
-        'user_id': ObjectId(user_id),
-        'borrow_date': datetime.now(),
-        'due_date': datetime.strptime(due_date, '%Y-%m-%d') if due_date else None,
-        'status': 'borrowed'
-    }
-    borrow_records_collection.insert_one(borrow_record)
-    
+    # Note: If res is None, book was not available.
+    # In a full app, you would flash an error. 
     return redirect(url_for('borrow'))
 
 # ==========================================
@@ -301,32 +279,8 @@ def process_return():
     condition = request.form.get('condition', 'good')
     fine = float(request.form.get('fine', 0.0))
     
-    borrow_oid = ObjectId(borrow_id)
-    borrow_record = borrow_records_collection.find_one({'_id': borrow_oid})
-    
-    if not borrow_record or borrow_record['status'] == 'returned':
-        return redirect(url_for('return_books'))
-        
-    # 1. Update borrow record status
-    borrow_records_collection.update_one(
-        {'_id': borrow_oid},
-        {'$set': {'status': 'returned'}}
-    )
-    
-    # 2. Increment book available copies
-    books_collection.update_one(
-        {'_id': borrow_record['book_id']},
-        {'$inc': {'available_copies': 1}}
-    )
-    
-    # 3. Create a return record
-    return_record = {
-        'borrow_id': borrow_oid,
-        'return_date': datetime.now(),
-        'condition': condition,
-        'fine': fine
-    }
-    returns_collection.insert_one(return_record)
+    # Process return using the db helper
+    return_book(borrow_id, return_date=datetime.now(), fine=fine)
     
     return redirect(url_for('return_books'))
 

@@ -27,7 +27,7 @@
                     <select name="book_id" required class="glass-input w-full px-4 py-3 rounded-lg appearance-none bg-slate-800 text-white focus:ring focus:ring-blue-500/50">
                         <option value="">-- Choose Available Book --</option>
                         {% for book in books %}
-                        <option value="{{ book._id }}">{{ book.title }} ({{ book.available_copies }} left)</option>
+                        <option value="{{ book._id }}">{{ book.title }} ({{ book.available }} left)</option>
                         {% endfor %}
                     </select>
                 </div>

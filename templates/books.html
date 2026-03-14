@@ -37,9 +37,9 @@
                     <td class="text-slate-300 py-4 px-6">{{ book.author }}</td>
                     <td class="text-slate-400 py-4 px-6">{{ book.isbn }}</td>
                     <td class="py-4 px-6">
-                        {% if book.category_info %}
+                        {% if book.category %}
                             <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300">
-                                {{ book.category_info[0].name }}
+                                {{ book.category }}
                             </span>
                         {% else %}
                             <span class="text-slate-500 italic">None</span>
@@ -47,10 +47,10 @@
                     </td>
                     <td class="py-4 px-6">
                         <div class="flex items-center gap-2">
-                            <span class="{% if book.available_copies > 0 %}text-green-400{% else %}text-red-400{% endif %} font-bold">
-                                {{ book.available_copies }}
+                            <span class="{% if book.available > 0 %}text-green-400{% else %}text-red-400{% endif %} font-bold">
+                                {{ book.available }}
                             </span>
-                            <span class="text-slate-500">/ {{ book.total_copies }}</span>
+                            <span class="text-slate-500">/ {{ book.quantity }}</span>
                         </div>
                     </td>
                     <td class="py-4 px-6 text-right">

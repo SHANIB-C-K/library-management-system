@@ -6,20 +6,31 @@
         <h1 class="text-3xl font-bold text-white mb-2">Book Inventory</h1>
         <p class="text-slate-400">Manage library books and add new categories.</p>
     </div>
-    <div class="mt-4 md:mt-0 flex gap-4">
-        <button onclick="document.getElementById('addCategoryModal').showModal()" class="glass-btn px-4 py-2 rounded-lg text-white font-medium flex items-center gap-2">
+<!-- Actions & Search Bar -->
+<div class="glass-panel p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-600/50" data-aos="fade-up">
+    <!-- Search Bar -->
+    <div class="relative w-full md:w-1/2">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
+        </div>
+        <input type="text" id="bookSearchInput" placeholder="Search by title, author, or ISBN..." class="glass-input w-full pl-10 pr-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500/50">
+    </div>
+
+    <!-- Modals Trigger Buttons -->
+    <div class="flex gap-4 w-full md:w-auto">
+        <button onclick="document.getElementById('addCategoryModal').showModal()" class="glass-btn px-4 py-2 rounded-lg text-white font-medium flex-1 md:flex-none justify-center items-center gap-2">
             <i data-lucide="tag" class="w-4 h-4"></i> Add Category
         </button>
-        <button onclick="document.getElementById('addBookModal').showModal()" class="glass-btn px-4 py-2 rounded-lg bg-blue-600/50 hover:bg-blue-600/70 text-white font-medium flex items-center gap-2">
+        <button onclick="document.getElementById('addBookModal').showModal()" class="glass-btn px-4 py-2 rounded-lg bg-blue-600/50 hover:bg-blue-600/70 text-white font-medium flex-1 md:flex-none justify-center items-center gap-2">
             <i data-lucide="plus" class="w-4 h-4"></i> Add Book
         </button>
     </div>
 </div>
 
 <!-- Books Table -->
-<div class="glass-panel overflow-hidden" data-aos="fade-up">
+<div class="glass-panel overflow-hidden" data-aos="fade-up" data-aos-delay="100">
     <div class="overflow-x-auto p-2">
-        <table class="w-full text-sm text-left">
+        <table class="w-full text-sm text-left" id="booksTable">
             <thead>
                 <tr>
                     <th class="font-medium text-slate-300 rounded-tl-lg">Title</th>
@@ -54,13 +65,50 @@
                         </div>
                     </td>
                     <td class="py-4 px-6 text-right">
+                        <!-- Added edit capability (placeholder for actual edit modal flow to keep simple) -->
+                        <button onclick="document.getElementById('editBookModal-{{ book._id }}').showModal()" class="text-blue-400 hover:text-blue-300 transition-colors p-2 glass-btn rounded-lg opacity-0 group-hover:opacity-100 mr-2">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
                         <button onclick="confirmDeletion('{{ url_for('delete_book', book_id=book._id) }}', 'Delete Book?')" class="text-red-400 hover:text-red-300 transition-colors p-2 glass-btn rounded-lg opacity-0 group-hover:opacity-100">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </td>
                 </tr>
+                
+                <!-- Edit Book Modal (Iterative) -->
+                <dialog id="editBookModal-{{ book._id }}" class="p-0">
+                    <div class="glass-panel p-6 border border-gray-600 bg-slate-900 rounded-2xl shadow-2xl relative">
+                        <button onclick="document.getElementById('editBookModal-{{ book._id }}').close()" type="button" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                        <h3 class="text-xl font-bold text-white mb-6">Edit Book Inventory</h3>
+                        <form action="{{ url_for('edit_book', book_id=book._id) }}" method="POST" class="space-y-4 text-left">
+                            <input type="hidden" name="title" value="{{ book.title }}">
+                            <input type="hidden" name="author" value="{{ book.author }}">
+                            <input type="hidden" name="isbn" value="{{ book.isbn }}">
+                            <!-- Retains current category info -->
+                            {% for cat in categories %}
+                                {% if cat.name == book.category %}
+                                    <input type="hidden" name="category_id" value="{{ cat._id }}">
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <div class="col-span-2">
+                                <label class="block text-sm font-medium text-slate-300 mb-1">Add MORE Copies (Current: {{ book.quantity }})</label>
+                                <input type="number" name="added_copies" min="0" value="0" required class="glass-input w-full px-4 py-2 rounded-lg">
+                                <p class="text-xs text-slate-500 mt-2">You can incrementally add copies. Setting 0 will just save the current details.</p>
+                            </div>
+                            
+                            <div class="pt-4 flex justify-end gap-3">
+                                <button type="button" onclick="document.getElementById('editBookModal-{{ book._id }}').close()" class="px-4 py-2 text-slate-400 hover:text-white">Cancel</button>
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg shadow-lg shadow-blue-500/30 transition-all font-medium">Update Book</button>
+                            </div>
+                        </form>
+                    </div>
+                </dialog>
+                
                 {% else %}
-                <tr>
+                <tr id="emptyBooksRow">
                     <td colspan="6" class="text-center py-8 text-slate-400">No books found in the inventory.</td>
                 </tr>
                 {% endfor %}
@@ -76,7 +124,7 @@
             <i data-lucide="x" class="w-5 h-5"></i>
         </button>
         <h3 class="text-xl font-bold text-white mb-6">Add New Book</h3>
-        <form action="{{ url_for('add_new_book') }}" method="POST" class="space-y-4">
+        <form action="{{ url_for('add_book') }}" method="POST" class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-slate-300 mb-1">Title</label>
                 <input type="text" name="title" required class="glass-input w-full px-4 py-2 rounded-lg">
@@ -135,4 +183,42 @@
         </form>
     </div>
 </dialog>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('bookSearchInput');
+        const booksTable = document.getElementById('booksTable');
+        const rows = booksTable.querySelectorAll('tbody tr:not(#emptyBooksRow)');
+        const emptyRow = document.getElementById('emptyBooksRow');
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                // Combine text content from Title, Author, and ISBN columns
+                const searchContent = Array.from(row.cells).slice(0, 3).map(cell => cell.textContent.toLowerCase()).join(' ');
+                
+                if (searchContent.includes(query)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Toggle empty state if no rows match
+            if (emptyRow) {
+                if (visibleCount === 0 && rows.length > 0) {
+                    emptyRow.style.display = '';
+                    emptyRow.children[0].textContent = "No books found matching criteria.";
+                } else {
+                    emptyRow.style.display = 'none';
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

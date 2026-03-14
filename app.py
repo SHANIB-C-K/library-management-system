@@ -99,9 +99,9 @@ def books():
     all_categories = list(categories_collection.find())
     return render_template('books.html', books=all_books, categories=all_categories)
 
-@app.route('/books/add', methods=['POST'])
+@app.route('/add_book', methods=['POST'])
 @login_required
-def add_new_book():
+def add_book():
     """Create a new book record."""
     title = request.form.get('title')
     author = request.form.get('author')
@@ -118,7 +118,7 @@ def add_new_book():
     
     return redirect(url_for('books'))
 
-@app.route('/books/edit/<book_id>', methods=['POST'])
+@app.route('/edit_book/<book_id>', methods=['POST'])
 @login_required
 def edit_book(book_id):
     """Update an existing book record."""
@@ -149,7 +149,7 @@ def edit_book(book_id):
     )
     return redirect(url_for('books'))
 
-@app.route('/books/delete/<book_id>', methods=['POST'])
+@app.route('/delete_book/<book_id>', methods=['POST'])
 @login_required
 def delete_book(book_id):
     """Delete a book record."""

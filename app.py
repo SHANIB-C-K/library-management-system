@@ -249,19 +249,29 @@ def borrow():
 @app.route('/borrow/add', methods=['POST'])
 @login_required
 def issue_book():
-    """Issue a book to a user."""
-    book_id = request.form.get('book_id')
-    user_id = request.form.get('user_id')
-    due_date = request.form.get('due_date')
-    
-    borrow_date = datetime.now()
-    
-    # Call the helper method from the database
-    res = borrow_book(user_id, book_id, borrow_date=borrow_date)
-    
-    # Note: If res is None, book was not available.
-    # In a full app, you would flash an error. 
-    return redirect(url_for('borrow'))
+    """Issue a book to a user, storing borrow_date and due_date."""
+    book_id   = request.form.get('book_id')
+    user_id   = request.form.get('user_id')
+    borrow_date_str = request.form.get('borrow_date')
+    due_date_str    = request.form.get('due_date')
+
+    # Parse the dates submitted from the form
+    try:
+        borrow_date = datetime.strptime(borrow_date_str, '%Y-%m-%d') if borrow_date_str else datetime.now()
+        due_date    = datetime.strptime(due_date_str,    '%Y-%m-%d') if due_date_str    else None
+    except ValueError:
+        borrow_date = datetime.now()
+        due_date    = None
+
+    # Call the database helper; it returns None if the book is unavailable
+    res = borrow_book(user_id, book_id, borrow_date=borrow_date, due_date=due_date)
+
+    if res:
+        # Redirect back to the borrow page with a success flag so SweetAlert2 fires
+        return redirect(url_for('borrow', success=1))
+    else:
+        # Book is no longer available (race condition or bad request)
+        return redirect(url_for('borrow', error='unavailable'))
 
 # ==========================================
 # Return Routes

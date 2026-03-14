@@ -46,7 +46,7 @@ def get_all_books():
     """Retrieve all books."""
     return list(books_collection.find())
 
-def borrow_book(user_id, book_id, borrow_date=None, status="borrowed"):
+def borrow_book(user_id, book_id, borrow_date=None, due_date=None, status="borrowed"):
     """Create a new borrow record and decrement available copies."""
     if borrow_date is None:
         borrow_date = datetime.now()
@@ -56,19 +56,20 @@ def borrow_book(user_id, book_id, borrow_date=None, status="borrowed"):
     if not book or book.get('available', 0) <= 0:
         return None
         
-    # Decrement availability
+    # Decrement availability in the books collection
     books_collection.update_one(
         {'_id': ObjectId(book_id)},
         {'$inc': {'available': -1}}
     )
     
-    # Create borrow record
+    # Create borrow record including the expected due_date
     record = {
-        'user_id': ObjectId(user_id),
-        'book_id': ObjectId(book_id),
+        'user_id':     ObjectId(user_id),
+        'book_id':     ObjectId(book_id),
         'borrow_date': borrow_date,
+        'due_date':    due_date,        # Expected return date
         'return_date': None,
-        'status': status
+        'status':      status
     }
     result = borrow_records_collection.insert_one(record)
     return result.inserted_id

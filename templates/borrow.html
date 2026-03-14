@@ -1,95 +1,229 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex flex-col md:flex-row gap-8">
-    
-    <!-- Issue Book Form (Left Column) -->
-    <div class="w-full md:w-1/3" data-aos="fade-right">
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-white mb-2">Issue Book</h1>
-            <p class="text-slate-400">Create a new borrow record.</p>
-        </div>
-        
-        <div class="glass-panel p-6">
-            <form action="{{ url_for('issue_book') }}" method="POST" class="space-y-4">
+<div class="mb-8" data-aos="fade-down">
+    <h1 class="text-3xl font-bold text-white mb-2">Issue Book</h1>
+    <p class="text-slate-400">Borrow a book for a library member.</p>
+</div>
+
+<div class="flex flex-col lg:flex-row gap-8">
+
+    <!-- ===== BORROW FORM (Left) ===== -->
+    <div class="w-full lg:w-2/5" data-aos="fade-right">
+        <div class="glass-panel p-6 border-t-4 border-blue-500">
+            <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                <div class="p-2 rounded-lg bg-blue-500/20 text-blue-400">
+                    <i data-lucide="book-plus" class="w-5 h-5"></i>
+                </div>
+                New Borrow Record
+            </h2>
+
+            <form action="{{ url_for('issue_book') }}" method="POST" class="space-y-5">
+
+                <!-- Member Select -->
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Select Member</label>
-                    <select name="user_id" required class="glass-input w-full px-4 py-3 rounded-lg appearance-none bg-slate-800 text-white focus:ring focus:ring-blue-500/50">
-                        <option value="">-- Choose Member --</option>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">
+                        <i data-lucide="user" class="w-4 h-4 inline-block mr-1 text-purple-400"></i>
+                        Member
+                    </label>
+                    <select name="user_id" required
+                        class="glass-input w-full px-4 py-3 rounded-xl appearance-none bg-slate-800/80 text-white focus:ring-2 focus:ring-purple-500/50">
+                        <option value="">— Select Member —</option>
                         {% for user in users %}
-                        <option value="{{ user._id }}">{{ user.name }} ({{ user.email }})</option>
+                        <option value="{{ user._id }}">{{ user.name }} — {{ user.email }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                
+
+                <!-- Book Select -->
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Select Book</label>
-                    <select name="book_id" required class="glass-input w-full px-4 py-3 rounded-lg appearance-none bg-slate-800 text-white focus:ring focus:ring-blue-500/50">
-                        <option value="">-- Choose Available Book --</option>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">
+                        <i data-lucide="book-open" class="w-4 h-4 inline-block mr-1 text-blue-400"></i>
+                        Book
+                    </label>
+                    <select name="book_id" required
+                        class="glass-input w-full px-4 py-3 rounded-xl appearance-none bg-slate-800/80 text-white focus:ring-2 focus:ring-blue-500/50">
+                        <option value="">— Select Available Book —</option>
                         {% for book in books %}
-                        <option value="{{ book._id }}">{{ book.title }} ({{ book.available }} left)</option>
+                        <option value="{{ book._id }}">
+                            {{ book.title }} — {{ book.available }} cop{{ 'y' if book.available == 1 else 'ies' }} left
+                        </option>
                         {% endfor %}
                     </select>
+                    {% if not books %}
+                    <p class="text-rose-400 text-xs mt-2 flex items-center gap-1">
+                        <i data-lucide="alert-circle" class="w-3 h-3"></i>
+                        No books with available copies right now.
+                    </p>
+                    {% endif %}
                 </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Due Date</label>
-                    <!-- Date input works natively in modern browsers -->
-                    <input type="date" name="due_date" required class="glass-input w-full px-4 py-3 rounded-lg bg-slate-800 text-white [color-scheme:dark]">
+
+                <!-- Date Row -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-300 mb-2">
+                            <i data-lucide="calendar" class="w-4 h-4 inline-block mr-1 text-cyan-400"></i>
+                            Borrow Date
+                        </label>
+                        <input type="date" name="borrow_date" id="borrowDateInput" required
+                            class="glass-input w-full px-4 py-3 rounded-xl bg-slate-800/80 text-white [color-scheme:dark] focus:ring-2 focus:ring-cyan-500/50">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-300 mb-2">
+                            <i data-lucide="calendar-check" class="w-4 h-4 inline-block mr-1 text-orange-400"></i>
+                            Expected Return
+                        </label>
+                        <input type="date" name="due_date" id="dueDateInput" required
+                            class="glass-input w-full px-4 py-3 rounded-xl bg-slate-800/80 text-white [color-scheme:dark] focus:ring-2 focus:ring-orange-500/50">
+                    </div>
                 </div>
-                
-                <div class="pt-4">
-                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white py-3 rounded-lg shadow-lg shadow-blue-500/25 font-bold transition-all hover:-translate-y-1">
+
+                <!-- Submit -->
+                <div class="pt-2">
+                    <button type="submit" {% if not books %}disabled{% endif %}
+                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl shadow-lg shadow-blue-500/25 font-bold transition-all hover:-translate-y-1 flex items-center justify-center gap-2">
+                        <i data-lucide="send" class="w-4 h-4"></i>
                         Issue Book
                     </button>
                 </div>
             </form>
         </div>
     </div>
-    
-    <!-- Active Borrows (Right Column) -->
-    <div class="w-full md:w-2/3" data-aos="fade-left" data-aos-delay="100">
-        <div class="mb-6">
-            <h2 class="text-2xl font-bold text-white mb-2">Currently Borrowed</h2>
-            <p class="text-slate-400">Books that are out and not yet returned.</p>
-        </div>
-        
+
+    <!-- ===== ACTIVE BORROWS (Right) ===== -->
+    <div class="flex-1" data-aos="fade-left" data-aos-delay="100">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+            <div class="p-2 rounded-lg bg-orange-500/20 text-orange-400">
+                <i data-lucide="list-checks" class="w-5 h-5"></i>
+            </div>
+            Currently Borrowed
+            {% if active_borrows %}
+            <span class="ml-2 px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                {{ active_borrows | length }}
+            </span>
+            {% endif %}
+        </h2>
+
         <div class="space-y-4">
             {% for record in active_borrows %}
-            <div class="glass-panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:-translate-y-1 transition-transform">
-                <div class="flex-1">
-                    <h3 class="text-white font-bold text-lg mb-1 flex items-center gap-2">
-                        <i data-lucide="book" class="w-4 h-4 text-blue-400"></i>
-                        {{ record.book_info[0].title }}
+            <div class="glass-panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:-translate-y-1 transition-transform">
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-white font-bold text-base mb-1 truncate flex items-center gap-2">
+                        <i data-lucide="book" class="w-4 h-4 text-blue-400 flex-shrink-0"></i>
+                        {{ record.book_info[0].title if record.book_info else 'Unknown Book' }}
                     </h3>
-                    <p class="text-slate-400 text-sm flex items-center gap-2">
-                        <i data-lucide="user" class="w-4 h-4 text-purple-400"></i>
-                        Borrowed by: <span class="text-slate-300 font-medium">{{ record.user_info[0].name }}</span>
+                    <p class="text-slate-400 text-sm flex items-center gap-2 truncate">
+                        <i data-lucide="user" class="w-4 h-4 text-purple-400 flex-shrink-0"></i>
+                        {{ record.user_info[0].name if record.user_info else 'Unknown Member' }}
                     </p>
                 </div>
-                
-                <div class="flex flex-col sm:items-end gap-2 text-sm">
-                    <div class="bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-700 w-fit">
-                        <span class="text-slate-500 text-xs uppercase tracking-wider block mb-0.5">Borrowed On</span>
-                        <span class="text-slate-300">{{ record.borrow_date.strftime('%b %d, %Y') }}</span>
+
+                <div class="flex flex-row sm:flex-col gap-3 sm:items-end text-xs shrink-0">
+                    <div class="bg-slate-800/60 border border-slate-700 px-3 py-1.5 rounded-lg">
+                        <span class="text-slate-500 uppercase tracking-wider block mb-0.5">Borrowed</span>
+                        <span class="text-slate-300 font-medium">
+                            {{ record.borrow_date.strftime('%d %b %Y') if record.borrow_date else 'N/A' }}
+                        </span>
                     </div>
-                    <div class="bg-orange-500/10 border border-orange-500/20 px-3 py-1.5 rounded-md w-fit">
-                        <span class="text-orange-400/70 text-xs uppercase tracking-wider block mb-0.5">Due Date</span>
-                        <span class="text-orange-300 font-medium">{{ record.due_date.strftime('%b %d, %Y') if record.due_date else 'N/A' }}</span>
+                    <div class="bg-orange-500/10 border border-orange-500/20 px-3 py-1.5 rounded-lg">
+                        <span class="text-orange-500/80 uppercase tracking-wider block mb-0.5">Due</span>
+                        <span class="text-orange-300 font-bold">
+                            {{ record.due_date.strftime('%d %b %Y') if record.due_date else 'N/A' }}
+                        </span>
                     </div>
                 </div>
             </div>
             {% else %}
-            <div class="glass-panel p-12 text-center flex flex-col items-center justify-center">
+            <div class="glass-panel p-14 text-center flex flex-col items-center justify-center">
                 <div class="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mb-4 border border-green-500/20">
                     <i data-lucide="check-circle" class="w-8 h-8 text-green-400"></i>
                 </div>
-                <h3 class="text-lg font-medium text-white mb-2">Everything is perfectly synced</h3>
-                <p class="text-slate-400">There are currently no active borrows. All books are available.</p>
+                <h3 class="text-lg font-semibold text-white mb-1">All Clear!</h3>
+                <p class="text-slate-400">No books are currently borrowed.</p>
             </div>
             {% endfor %}
         </div>
     </div>
-    
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // ── Set default dates on page load ─────────────────────────────────
+    const today = new Date();
+    const isoToday = today.toISOString().split('T')[0];
+
+    const borrowInput = document.getElementById('borrowDateInput');
+    const dueInput    = document.getElementById('dueDateInput');
+
+    if (borrowInput) borrowInput.value = isoToday;
+
+    if (dueInput) {
+        // Default due date: 14 days from today
+        const twoWeeks = new Date(today);
+        twoWeeks.setDate(today.getDate() + 14);
+        dueInput.value = twoWeeks.toISOString().split('T')[0];
+
+        // Ensure due date cannot be before borrow date
+        borrowInput.addEventListener('change', () => {
+            if (dueInput.value && dueInput.value < borrowInput.value) {
+                dueInput.value = borrowInput.value;
+            }
+            dueInput.min = borrowInput.value;
+        });
+    }
+
+    // ── SweetAlert2 – success popup triggered by ?success=1 ────────────
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get('success') === '1') {
+        Swal.fire({
+            icon: 'success',
+            title: 'Book Issued! 🎉',
+            html: `<p class="text-slate-300">The book has been successfully issued.<br>
+                   The available count has been updated.</p>`,
+            background: '#0f172a',
+            color: '#f1f5f9',
+            iconColor: '#34d399',
+            confirmButtonColor: '#3b82f6',
+            confirmButtonText: 'Great!',
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp'
+            },
+            customClass: {
+                popup: 'rounded-2xl border border-slate-700 shadow-2xl',
+                confirmButton: 'rounded-xl px-6 font-semibold'
+            }
+        });
+        // Clean the URL so refreshing doesn't re-fire the alert
+        window.history.replaceState({}, '', '{{ url_for("borrow") }}');
+    }
+
+    // ── SweetAlert2 – error popup when book is unavailable ─────────────
+    if (params.get('error') === 'unavailable') {
+        Swal.fire({
+            icon: 'error',
+            title: 'Book Unavailable',
+            text: 'Sorry, all copies of that book are currently issued out.',
+            background: '#0f172a',
+            color: '#f1f5f9',
+            iconColor: '#f87171',
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'OK',
+            customClass: {
+                popup: 'rounded-2xl border border-slate-700 shadow-2xl',
+                confirmButton: 'rounded-xl px-6 font-semibold'
+            }
+        });
+        window.history.replaceState({}, '', '{{ url_for("borrow") }}');
+    }
+
+});
+</script>
 {% endblock %}

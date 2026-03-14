@@ -1,99 +1,218 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8" data-aos="fade-down">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4" data-aos="fade-down">
     <div>
-        <h1 class="text-3xl font-bold text-white mb-2">Members (Users)</h1>
+        <h1 class="text-3xl font-bold text-white mb-1">Members</h1>
         <p class="text-slate-400">Manage library members and students.</p>
     </div>
-    <div class="mt-4 md:mt-0">
-        <button onclick="document.getElementById('addUserModal').showModal()" class="glass-btn px-4 py-2 rounded-lg bg-blue-600/50 hover:bg-blue-600/70 text-white font-medium flex items-center gap-2">
-            <i data-lucide="user-plus" class="w-4 h-4"></i> Add Member
-        </button>
+    <button onclick="document.getElementById('addUserModal').showModal()"
+        class="glass-btn px-4 py-2.5 rounded-xl bg-blue-600/50 hover:bg-blue-600/70 text-white font-semibold flex items-center gap-2 text-sm">
+        <i data-lucide="user-plus" class="w-4 h-4"></i> Add Member
+    </button>
+</div>
+
+<!-- Search bar -->
+<div class="glass-panel p-3 mb-6 flex items-center gap-3" data-aos="fade-up">
+    <div class="relative flex-1">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+        <input type="text" id="userSearch" placeholder="Search by name, email or role…"
+            class="glass-input w-full pl-9 pr-4 py-2.5 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/50">
     </div>
+    <span class="text-slate-500 text-sm whitespace-nowrap" id="userCount"></span>
 </div>
 
 <!-- Users Grid -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-aos="fade-up">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="usersGrid" data-aos="fade-up" data-aos-delay="80">
     {% for user in users %}
-    <div class="glass-panel p-6 relative group transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/20">
-        <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onclick="confirmDeletion('{{ url_for('delete_user', user_id=user._id) }}', 'Delete User?')" class="text-red-400 hover:text-red-300 transition-colors p-2 glass-btn rounded-full bg-slate-800/80">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
+    <div class="glass-panel p-5 relative group hover:-translate-y-1 transition-transform duration-200 user-card"
+         data-name="{{ user.name | lower }}"
+         data-email="{{ user.email | lower }}"
+         data-role="{{ user.role | lower }}">
+
+        <!-- Action buttons (shown on hover) -->
+        <div class="absolute top-4 right-4 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            <button onclick="document.getElementById('editUserModal-{{ user._id }}').showModal()"
+                class="p-2 glass-btn rounded-lg text-blue-400 hover:text-blue-300" title="Edit">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="confirmDeletion('{{ url_for('delete_user', user_id=user._id) }}', 'Delete Member?', 'This will permanently remove {{ user.name }}.')"
+                class="p-2 glass-btn rounded-lg text-red-400 hover:text-red-300" title="Delete">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
         </div>
-        
+
+        <!-- Avatar + Name -->
         <div class="flex items-center gap-4 mb-4">
-            <div class="h-12 w-12 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-500 flex flex-shrink-0 items-center justify-center font-bold text-xl text-white shadow-lg">
+            <div class="h-12 w-12 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex flex-shrink-0 items-center justify-center font-extrabold text-xl text-white shadow-lg shadow-blue-500/20">
                 {{ user.name[0] | upper }}
             </div>
-            <div class="overflow-hidden">
-                <h3 class="text-lg font-bold text-white truncate">{{ user.name }}</h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider bg-slate-700 text-slate-300">
+            <div class="overflow-hidden flex-1">
+                <h3 class="text-base font-bold text-white truncate">{{ user.name }}</h3>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider
+                    {% if user.role == 'faculty' %}bg-purple-500/20 text-purple-400 border border-purple-500/20
+                    {% elif user.role == 'staff' %}bg-orange-500/20 text-orange-400 border border-orange-500/20
+                    {% else %}bg-blue-500/20 text-blue-400 border border-blue-500/20{% endif %}">
                     {{ user.role }}
                 </span>
             </div>
         </div>
-        
-        <div class="space-y-3 mt-4 text-sm text-slate-400 pt-4 border-t border-slate-700/50">
-            <div class="flex items-center gap-3">
-                <div class="p-1.5 rounded-md bg-slate-800/50 text-slate-400">
-                    <i data-lucide="mail" class="w-4 h-4"></i>
+
+        <!-- Details -->
+        <div class="space-y-2 text-sm border-t border-slate-700/50 pt-4">
+            <div class="flex items-center gap-2.5 text-slate-400">
+                <div class="p-1 rounded bg-slate-800/60 flex-shrink-0">
+                    <i data-lucide="mail" class="w-3.5 h-3.5"></i>
                 </div>
                 <span class="truncate">{{ user.email }}</span>
             </div>
-            <div class="flex items-center gap-3">
-                <div class="p-1.5 rounded-md bg-slate-800/50 text-slate-400">
-                    <i data-lucide="phone" class="w-4 h-4"></i>
+            <div class="flex items-center gap-2.5 text-slate-400">
+                <div class="p-1 rounded bg-slate-800/60 flex-shrink-0">
+                    <i data-lucide="phone" class="w-3.5 h-3.5"></i>
                 </div>
-                <span>{{ user.phone or 'No phone mapped' }}</span>
+                <span>{{ user.phone or 'Not provided' }}</span>
             </div>
         </div>
     </div>
+
+    <!-- Edit User Modal -->
+    <dialog id="editUserModal-{{ user._id }}" class="p-0 rounded-2xl">
+        <div class="glass-panel p-6 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md relative">
+            <button onclick="document.getElementById('editUserModal-{{ user._id }}').close()"
+                class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <i data-lucide="edit-3" class="w-5 h-5 text-blue-400"></i> Edit Member
+            </h3>
+            <form action="{{ url_for('edit_user', user_id=user._id) }}" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Full Name</label>
+                    <input type="text" name="name" value="{{ user.name }}" required
+                        class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Email</label>
+                    <input type="email" name="email" value="{{ user.email }}" required
+                        class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Phone</label>
+                    <input type="text" name="phone" value="{{ user.phone or '' }}"
+                        class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Role</label>
+                    <select name="role" class="glass-input w-full px-4 py-2.5 rounded-xl appearance-none bg-slate-800 text-white text-sm">
+                        <option value="student"  {% if user.role == 'student'  %}selected{% endif %}>Student</option>
+                        <option value="faculty"  {% if user.role == 'faculty'  %}selected{% endif %}>Faculty</option>
+                        <option value="staff"    {% if user.role == 'staff'    %}selected{% endif %}>Staff</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="document.getElementById('editUserModal-{{ user._id }}').close()"
+                        class="px-4 py-2 text-slate-400 hover:text-white text-sm">Cancel</button>
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-blue-500/20">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </dialog>
     {% else %}
-    <div class="col-span-full glass-panel p-12 text-center">
-        <div class="mx-auto w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4">
+    <div class="col-span-full glass-panel p-14 text-center flex flex-col items-center justify-center">
+        <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
             <i data-lucide="users" class="w-8 h-8 text-slate-500"></i>
         </div>
-        <h3 class="text-xl font-medium text-white mb-2">No Members Found</h3>
-        <p class="text-slate-400">There are currently no users in the database.</p>
+        <h3 class="text-xl font-semibold text-white mb-2">No Members</h3>
+        <p class="text-slate-400 mb-5">Add your first library member to get started.</p>
+        <button onclick="document.getElementById('addUserModal').showModal()"
+            class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-semibold text-sm">
+            Add Member
+        </button>
     </div>
     {% endfor %}
 </div>
 
+<!-- No search results message -->
+<div id="noUserResults" class="hidden glass-panel p-10 text-center mt-4">
+    <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-3 text-slate-600"></i>
+    <p class="text-slate-400">No members match your search.</p>
+</div>
+
 <!-- Add User Modal -->
-<dialog id="addUserModal" class="p-0">
-    <div class="glass-panel p-6 border border-gray-600 bg-slate-900 rounded-2xl shadow-2xl relative">
-        <button onclick="document.getElementById('addUserModal').close()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+<dialog id="addUserModal" class="p-0 rounded-2xl">
+    <div class="glass-panel p-6 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md relative">
+        <button onclick="document.getElementById('addUserModal').close()"
+            class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
             <i data-lucide="x" class="w-5 h-5"></i>
         </button>
-        <h3 class="text-xl font-bold text-white mb-6">Register Member</h3>
+        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <i data-lucide="user-plus" class="w-5 h-5 text-blue-400"></i> Register Member
+        </h3>
         <form action="{{ url_for('add_new_user') }}" method="POST" class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
-                <input type="text" name="name" required class="glass-input w-full px-4 py-2 rounded-lg">
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Full Name</label>
+                <input type="text" name="name" required class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
-                <input type="email" name="email" required class="glass-input w-full px-4 py-2 rounded-lg">
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Email</label>
+                <input type="email" name="email" required class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Phone Number</label>
-                <input type="text" name="phone" class="glass-input w-full px-4 py-2 rounded-lg">
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Phone</label>
+                <input type="text" name="phone" class="glass-input w-full px-4 py-2.5 rounded-xl text-sm">
             </div>
             <div>
-                <label class="block text-sm font-medium text-slate-300 mb-1">Role</label>
-                <select name="role" required class="glass-input w-full px-4 py-2 rounded-lg appearance-none bg-slate-800 text-white">
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Role</label>
+                <select name="role" required class="glass-input w-full px-4 py-2.5 rounded-xl appearance-none bg-slate-800 text-white text-sm">
                     <option value="student">Student</option>
                     <option value="faculty">Faculty</option>
                     <option value="staff">Staff</option>
                 </select>
             </div>
-            <div class="pt-4 flex justify-end gap-3">
-                <button type="button" onclick="document.getElementById('addUserModal').close()" class="px-4 py-2 text-slate-400 hover:text-white">Cancel</button>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg shadow-lg shadow-blue-500/30 transition-all font-medium">Register</button>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('addUserModal').close()"
+                    class="px-4 py-2 text-slate-400 hover:text-white text-sm">Cancel</button>
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-blue-500/20">
+                    Register
+                </button>
             </div>
         </form>
     </div>
 </dialog>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('userSearch');
+    const cards       = document.querySelectorAll('.user-card');
+    const noResults   = document.getElementById('noUserResults');
+    const countEl     = document.getElementById('userCount');
+
+    function updateCount(n) {
+        countEl.textContent = n === cards.length ? `${n} member${n !== 1 ? 's' : ''}` : `${n} / ${cards.length} shown`;
+    }
+    updateCount(cards.length);
+
+    searchInput.addEventListener('input', () => {
+        const q = searchInput.value.toLowerCase().trim();
+        let visible = 0;
+        cards.forEach(card => {
+            const matches = !q ||
+                card.dataset.name.includes(q) ||
+                card.dataset.email.includes(q) ||
+                card.dataset.role.includes(q);
+            card.style.display = matches ? '' : 'none';
+            if (matches) visible++;
+        });
+        noResults.classList.toggle('hidden', visible > 0 || cards.length === 0);
+        updateCount(visible);
+    });
+});
+</script>
 {% endblock %}

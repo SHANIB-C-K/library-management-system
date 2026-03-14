@@ -244,14 +244,26 @@ def users():
 @login_required
 def add_new_user():
     """Create a new user (Member/Student)."""
-    name = request.form.get('name')
+    name  = request.form.get('name')
     email = request.form.get('email')
     phone = request.form.get('phone')
-    role = request.form.get('role', 'student')
-    
-    # Using helper function (generating a mock password for now)
+    role  = request.form.get('role', 'student')
     add_user(name, email, f"{name.lower()}123", role, phone)
-    
+    return redirect(url_for('users'))
+
+@app.route('/users/edit/<user_id>', methods=['POST'])
+@login_required
+def edit_user(user_id):
+    """Update an existing user record."""
+    users_collection.update_one(
+        {'_id': ObjectId(user_id)},
+        {'$set': {
+            'name':  request.form.get('name'),
+            'email': request.form.get('email'),
+            'phone': request.form.get('phone'),
+            'role':  request.form.get('role', 'student'),
+        }}
+    )
     return redirect(url_for('users'))
 
 @app.route('/users/delete/<user_id>', methods=['POST'])
@@ -260,6 +272,20 @@ def delete_user(user_id):
     """Delete a user record."""
     users_collection.delete_one({'_id': ObjectId(user_id)})
     return jsonify({'success': True})
+
+# ==========================================
+# Borrow History Route
+# ==========================================
+@app.route('/borrow/history')
+@login_required
+def borrow_history():
+    """Show full borrow history for all records."""
+    all_borrows = list(borrow_records_collection.aggregate([
+        {'$sort': {'borrow_date': -1}},
+        {'$lookup': {'from': 'books', 'localField': 'book_id', 'foreignField': '_id', 'as': 'book_info'}},
+        {'$lookup': {'from': 'users', 'localField': 'user_id', 'foreignField': '_id', 'as': 'user_info'}},
+    ]))
+    return render_template('borrow_history.html', borrows=all_borrows, now_date=datetime.now())
 
 # ==========================================
 # Borrow Routes

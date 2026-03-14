@@ -8,23 +8,41 @@
 <!-- Actions & Search Bar -->
 <div class="glass-panel p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 border border-gray-600/50" data-aos="fade-up">
     <!-- Search Bar -->
-    <div class="relative w-full md:w-1/2">
+    <div class="relative w-full md:w-64">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
+            <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
         </div>
-        <input type="text" id="bookSearchInput" placeholder="Search by title, author, or ISBN..." class="glass-input w-full pl-10 pr-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500/50">
+        <input type="text" id="bookSearchInput" placeholder="Search title, author, ISBN…"
+            class="glass-input w-full pl-9 pr-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500/50 text-sm">
     </div>
 
-    <!-- Modals Trigger Buttons -->
-    <div class="flex gap-4 w-full md:w-auto">
-        <button onclick="document.getElementById('addCategoryModal').showModal()" class="glass-btn px-4 py-2 rounded-lg text-white font-medium flex-1 md:flex-none justify-center items-center gap-2">
-            <i data-lucide="tag" class="w-4 h-4"></i> Add Category
+    <!-- Category Filter -->
+    <div class="relative w-full md:w-52">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i data-lucide="tag" class="w-4 h-4 text-slate-400"></i>
+        </div>
+        <select id="categoryFilter"
+            class="glass-input w-full pl-9 pr-4 py-2.5 rounded-lg appearance-none bg-slate-800/80 text-white text-sm focus:ring-2 focus:ring-purple-500/50">
+            <option value="">All Categories</option>
+            {% for cat in categories %}
+            <option value="{{ cat.name }}">{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex gap-3 w-full md:w-auto">
+        <button onclick="document.getElementById('addCategoryModal').showModal()"
+            class="glass-btn px-4 py-2 rounded-lg text-white font-medium flex-1 md:flex-none flex justify-center items-center gap-2 text-sm">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i> Category
         </button>
-        <button onclick="document.getElementById('addBookModal').showModal()" class="glass-btn px-4 py-2 rounded-lg bg-blue-600/50 hover:bg-blue-600/70 text-white font-medium flex-1 md:flex-none justify-center items-center gap-2">
+        <button onclick="document.getElementById('addBookModal').showModal()"
+            class="glass-btn px-4 py-2 rounded-lg bg-blue-600/50 hover:bg-blue-600/70 text-white font-medium flex-1 md:flex-none flex justify-center items-center gap-2 text-sm">
             <i data-lucide="plus" class="w-4 h-4"></i> Add Book
         </button>
     </div>
 </div>
+
 
 <!-- Books Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="booksGrid" data-aos="fade-up" data-aos-delay="100">
@@ -194,39 +212,42 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const searchInput = document.getElementById('bookSearchInput');
-        const bookCards = document.querySelectorAll('.book-card');
-        const jsEmptyMsg = document.getElementById('jsEmptySearchMsg');
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput    = document.getElementById('bookSearchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const bookCards      = document.querySelectorAll('.book-card');
+    const jsEmptyMsg     = document.getElementById('jsEmptySearchMsg');
 
-        if(searchInput) {
-            searchInput.addEventListener('input', function() {
-                const query = this.value.toLowerCase().trim();
-                let visibleCount = 0;
-    
-                bookCards.forEach(card => {
-                    const title = card.querySelector('.book-title').textContent.toLowerCase();
-                    const author = card.querySelector('.book-author').textContent.toLowerCase();
-                    const isbn = card.querySelector('.book-isbn').textContent.toLowerCase();
-                    const searchContent = `${title} ${author} ${isbn}`;
-                    
-                    if (searchContent.includes(query)) {
-                        card.style.display = 'flex';
-                        visibleCount++;
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-    
-                if (jsEmptyMsg) {
-                    if (visibleCount === 0 && bookCards.length > 0) {
-                        jsEmptyMsg.classList.remove('hidden');
-                    } else {
-                        jsEmptyMsg.classList.add('hidden');
-                    }
-                }
-            });
+    function filterBooks() {
+        const query    = (searchInput ? searchInput.value.toLowerCase().trim() : '');
+        const category = (categoryFilter ? categoryFilter.value.toLowerCase().trim() : '');
+        let visible = 0;
+
+        bookCards.forEach(card => {
+            const title    = (card.querySelector('.book-title')?.textContent  || '').toLowerCase();
+            const author   = (card.querySelector('.book-author')?.textContent || '').toLowerCase();
+            const isbn     = (card.querySelector('.book-isbn')?.textContent   || '').toLowerCase();
+            const cat      = (card.querySelector('.book-category')?.textContent || '').toLowerCase();
+
+            const matchesText = !query || `${title} ${author} ${isbn}`.includes(query);
+            const matchesCat  = !category || cat.includes(category);
+
+            if (matchesText && matchesCat) {
+                card.style.display = '';
+                visible++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        if (jsEmptyMsg) {
+            jsEmptyMsg.classList.toggle('hidden', visible > 0 || bookCards.length === 0);
         }
-    });
+    }
+
+    searchInput    && searchInput.addEventListener('input',    filterBooks);
+    categoryFilter && categoryFilter.addEventListener('change', filterBooks);
+});
 </script>
 {% endblock %}
+

@@ -12,12 +12,12 @@
 
 /* ── Sidebar ─────────────────────────────────────────────────────────── */
 .sidebar {
-  background: rgba(3, 7, 18, 0.85);
+  background: rgba(3, 7, 18, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow: 4px 0 30px rgba(0, 0, 0, 0.3);
-  will-change: width;
+  will-change: transform, width;
 }
 
 .sidebar .sidebar-text {
@@ -226,4 +226,35 @@ dialog::backdrop {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Mobile Responsive Overrides ────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar {
+    background: rgba(3, 7, 18, 0.98); /* Less transparency for better readability on mobile drawer */
+  }
+  
+  .glass-panel {
+    border-radius: 1rem;
+    padding: 1.25rem !important;
+  }
+  
+  .page-content {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    padding-top: 1.5rem !important;
+  }
+  
+  h1 { font-size: 1.75rem !important; }
+  
+  /* Tables horizontally scrollable on mobile */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .overflow-x-auto::-webkit-scrollbar { display: none; }
+}
+
+#sidebarOverlay.opacity-100 {
+  opacity: 1;
 }

@@ -20,26 +20,33 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="antialiased text-slate-200 flex overflow-x-hidden">
+<body class="antialiased text-slate-200 flex overflow-x-hidden">{% if session.get('admin_logged_in') %}
 
-{% if session.get('admin_logged_in') %}
+<!-- Mobile Overlay -->
+<div id="sidebarOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity duration-300"></div>
 
 <!-- ======================================================
      SIDEBAR
 ====================================================== -->
 <aside id="sidebar"
-    class="sidebar fixed left-0 top-0 h-full z-40 flex flex-col transition-all duration-300"
+    class="sidebar fixed left-0 top-0 h-full z-50 flex flex-col transition-all duration-300 -translate-x-full md:translate-x-0"
     style="width:260px">
 
     <!-- Logo -->
-    <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-700/50">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30">
-            <i data-lucide="library" class="w-5 h-5 text-white"></i>
+    <div class="flex items-center justify-between px-6 py-5 border-b border-slate-700/50">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30">
+                <i data-lucide="library" class="w-5 h-5 text-white"></i>
+            </div>
+            <div class="sidebar-text overflow-hidden">
+                <p class="font-extrabold text-white text-base leading-none">LMS</p>
+                <p class="text-[10px] text-slate-500 tracking-wider uppercase mt-0.5">Library System</p>
+            </div>
         </div>
-        <div class="sidebar-text overflow-hidden">
-            <p class="font-extrabold text-white text-base leading-none">LMS</p>
-            <p class="text-[10px] text-slate-500 tracking-wider uppercase mt-0.5">Library System</p>
-        </div>
+        <!-- Mobile close btn -->
+        <button id="closeSidebarMobile" class="md:hidden p-1.5 rounded-lg text-slate-500 hover:text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
     </div>
 
     <!-- Nav Links -->
@@ -91,13 +98,13 @@
 <!-- ======================================================
      MAIN WRAPPER
 ====================================================== -->
-<div id="mainWrapper" class="flex-1 flex flex-col min-h-screen transition-all duration-300" style="margin-left:260px">
+<div id="mainWrapper" class="flex-1 flex flex-col min-h-screen transition-all duration-300 md:ml-[260px]">
 
     <!-- Top Header Bar -->
-    <header class="sticky top-0 z-30 glass-nav border-b border-slate-700/50 px-6 py-3 flex items-center justify-between gap-4">
+    <header class="sticky top-0 z-30 glass-nav border-b border-slate-700/50 px-4 md:px-6 py-3 flex items-center justify-between gap-4">
 
         <!-- Sidebar Toggle + Page Title -->
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 md:gap-4">
             <button id="sidebarToggle"
                 class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
                 title="Toggle sidebar">
@@ -105,10 +112,10 @@
             </button>
 
             <!-- Breadcrumb Page Name -->
-            <div class="hidden sm:flex items-center gap-2 text-sm text-slate-500">
-                <i data-lucide="home" class="w-3.5 h-3.5"></i>
-                <span>/</span>
-                <span class="text-slate-300 font-medium capitalize">
+            <div class="sm:flex items-center gap-2 text-sm text-slate-500">
+                <i data-lucide="home" class="w-3.5 h-3.5 hidden sm:block"></i>
+                <span class="hidden sm:block">/</span>
+                <span class="text-slate-300 font-medium capitalize truncate max-w-[100px] sm:max-w-none">
                     {% if request.endpoint == 'dashboard' %}Dashboard
                     {% elif request.endpoint == 'books' %}Books
                     {% elif request.endpoint == 'users' %}Users
@@ -121,18 +128,12 @@
 
         <!-- Right Actions -->
         <div class="flex items-center gap-3">
-            <!-- Quick Stats Pill -->
-            <div class="hidden md:flex items-center gap-3 bg-slate-800/60 rounded-full px-4 py-1.5 border border-slate-700/60 text-xs text-slate-400">
+            <!-- Quick Stats Pill (Desktop Only) -->
+            <div class="hidden lg:flex items-center gap-3 bg-slate-800/60 rounded-full px-4 py-1.5 border border-slate-700/60 text-xs text-slate-400">
                 <i data-lucide="database" class="w-3.5 h-3.5 text-blue-400"></i>
-                <span>MongoDB Connected</span>
+                <span>Atlas Cloud Connected</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
             </div>
-
-            <!-- Logout button (visible on mobile) -->
-            <a href="{{ url_for('logout') }}"
-               class="flex md:hidden items-center gap-2 glass-btn px-3 py-1.5 rounded-lg text-sm text-red-400 hover:text-red-300 font-medium">
-                <i data-lucide="log-out" class="w-4 h-4"></i>
-            </a>
 
             <!-- Avatar -->
             <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center font-bold text-white text-sm shadow-md">
@@ -142,19 +143,18 @@
     </header>
 
     <!-- ── Page Content ── -->
-    <main class="flex-1 px-6 py-8 page-content" id="pageContent">
+    <main class="flex-1 px-4 md:px-6 py-6 md:py-8 page-content" id="pageContent">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="px-6 py-4 border-t border-slate-700/30 text-center text-xs text-slate-600">
-        &copy; 2026 Library Management System &mdash; DBMS Lab Mini Project &mdash; Developed with Flask &amp; MongoDB.
+    <footer class="px-6 py-4 border-t border-slate-700/30 text-center text-[10px] md:text-xs text-slate-600">
+        &copy; 2026 Library Management System &mdash; DBMS Lab Mini Project
     </footer>
 
 </div><!-- /mainWrapper -->
 
 {% else %}
-<!-- Not logged in: full-screen layout (login page extends base but overrides here) -->
 <div class="w-full min-h-screen">
     {% block login_wrapper %}{% endblock %}
 </div>
@@ -167,70 +167,92 @@
 
 <script>
 (function () {
-    // ── Sidebar collapse/expand ────────────────────────────────────────
-    const sidebar      = document.getElementById('sidebar');
-    const mainWrapper  = document.getElementById('mainWrapper');
-    const toggleIcon   = document.getElementById('toggleIcon');
-    const sidebarBtn   = document.getElementById('sidebarToggle');
+    const sidebar       = document.getElementById('sidebar');
+    const mainWrapper   = document.getElementById('mainWrapper');
+    const sidebarBtn    = document.getElementById('sidebarToggle');
+    const toggleIcon    = document.getElementById('toggleIcon');
+    const overlay       = document.getElementById('sidebarOverlay');
+    const closeBtn      = document.getElementById('closeSidebarMobile');
 
     if (!sidebar) return;
 
     let collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
 
-    function applySidebar() {
-        if (collapsed) {
-            sidebar.style.width      = '72px';
-            mainWrapper.style.marginLeft = '72px';
-            sidebar.querySelectorAll('.sidebar-text').forEach(el => {
-                el.style.opacity = '0';
-                el.style.width   = '0';
-                el.style.overflow = 'hidden';
-            });
-            toggleIcon.setAttribute('data-lucide', 'panel-left-open');
+    function setMobileState(open) {
+        if (open) {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.add('opacity-100'), 10);
         } else {
-            sidebar.style.width      = '260px';
-            mainWrapper.style.marginLeft = '260px';
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.remove('opacity-100');
+            setTimeout(() => overlay.classList.add('hidden'), 300);
+        }
+    }
+
+    function applySidebar() {
+        const isMobile = window.innerWidth < 768;
+        
+        if (isMobile) {
+            // Mobile: Side bar is a hidden drawer
+            sidebar.style.width = '260px';
+            mainWrapper.style.marginLeft = '0';
             sidebar.querySelectorAll('.sidebar-text').forEach(el => {
-                el.style.opacity  = '1';
-                el.style.width    = '';
-                el.style.overflow = '';
+                el.style.opacity = '1'; el.style.width = ''; el.style.overflow = '';
             });
-            toggleIcon.setAttribute('data-lucide', 'panel-left-close');
+            toggleIcon.setAttribute('data-lucide', 'menu');
+        } else {
+            // Desktop: Side bar is persistent (collapse/expand)
+            overlay.classList.add('hidden');
+            if (collapsed) {
+                sidebar.style.width = '72px';
+                mainWrapper.style.marginLeft = '72px';
+                sidebar.querySelectorAll('.sidebar-text').forEach(el => {
+                    el.style.opacity = '0'; el.style.width = '0'; el.style.overflow = 'hidden';
+                });
+                toggleIcon.setAttribute('data-lucide', 'panel-left-open');
+            } else {
+                sidebar.style.width = '260px';
+                mainWrapper.style.marginLeft = '260px';
+                sidebar.querySelectorAll('.sidebar-text').forEach(el => {
+                    el.style.opacity = '1'; el.style.width = ''; el.style.overflow = '';
+                });
+                toggleIcon.setAttribute('data-lucide', 'panel-left-close');
+            }
         }
         lucide.createIcons();
     }
 
+    // Initial Apply
     applySidebar();
+    window.addEventListener('resize', applySidebar);
 
     sidebarBtn && sidebarBtn.addEventListener('click', () => {
-        collapsed = !collapsed;
-        localStorage.setItem('sidebarCollapsed', collapsed);
-        applySidebar();
+        if (window.innerWidth < 768) {
+            setMobileState(true);
+        } else {
+            collapsed = !collapsed;
+            localStorage.setItem('sidebarCollapsed', collapsed);
+            applySidebar();
+        }
     });
 
-    // ── Mobile: close sidebar on small screens on load ─────────────────
-    if (window.innerWidth < 768) {
-        collapsed = true;
-        applySidebar();
-    }
+    overlay  && overlay.addEventListener('click', () => setMobileState(false));
+    closeBtn && closeBtn.addEventListener('click', () => setMobileState(false));
 
-    // ── Page transition fade-in ────────────────────────────────────────
+    // Transition Logic
     const pageContent = document.getElementById('pageContent');
     if (pageContent) {
-        pageContent.style.opacity = '0';
-        pageContent.style.transform = 'translateY(8px)';
-        pageContent.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
-        setTimeout(() => {
-            pageContent.style.opacity  = '1';
-            pageContent.style.transform = 'translateY(0)';
-        }, 60);
+        pageContent.style.opacity = '1';
+        pageContent.style.transform = 'translateY(0)';
     }
 
-    // ── Intercept nav links for smooth page transition ─────────────────
     document.querySelectorAll('a.nav-link').forEach(link => {
         link.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
             if (!href || href.startsWith('#')) return;
+            if (window.innerWidth < 768) setMobileState(false);
+            
             e.preventDefault();
             if (pageContent) {
                 pageContent.style.opacity   = '0';

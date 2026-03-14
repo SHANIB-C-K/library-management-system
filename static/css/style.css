@@ -6,7 +6,51 @@
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
   --glass-glow: 0 0 20px rgba(56, 189, 248, 0.15); /* Subtle blue glow */
+  --sidebar-width: 260px;
+  --sidebar-collapsed: 72px;
 }
+
+/* ── Sidebar ─────────────────────────────────────────────────────────── */
+.sidebar {
+  background: rgba(3, 7, 18, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 4px 0 30px rgba(0, 0, 0, 0.3);
+  will-change: width;
+}
+
+.sidebar .sidebar-text {
+  transition: opacity 0.2s ease, width 0.2s ease;
+}
+
+/* Active nav-link left accent bar */
+.nav-link .active-bar {
+  transition: opacity 0.2s ease;
+}
+
+/* Nav link hover lift */
+.nav-link {
+  position: relative;
+  overflow: hidden;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.nav-link:hover::after { opacity: 1; }
+
+/* ── Tooltip for collapsed sidebar ──────────────────────────────────── */
+.sidebar[style*="width: 72px"] .nav-link {
+  justify-content: center;
+}
+
+
 
 body {
   font-family: 'Outfit', sans-serif; /* Upgraded Font */

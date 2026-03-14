@@ -1,109 +1,322 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<!-- ===== Page Header ===== -->
 <div class="mb-8" data-aos="fade-down">
-    <h1 class="text-3xl font-bold text-white mb-2">Dashboard</h1>
-    <p class="text-slate-400">Welcome to the Library Management System Overview.</p>
+    <h1 class="text-3xl font-bold text-white mb-1">Dashboard</h1>
+    <p class="text-slate-400">Welcome back, Admin. Here's what's happening in your library today.</p>
 </div>
 
-<!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    
-    <div class="glass-panel p-6" data-aos="fade-up" data-aos-delay="100">
-        <div class="flex items-center gap-4">
-            <div class="p-4 rounded-xl bg-blue-500/20 text-blue-400">
-                <i data-lucide="book-open" class="w-8 h-8"></i>
-            </div>
-            <div>
-                <p class="text-sm text-slate-400 font-medium">Total Books</p>
-                <h3 class="text-2xl font-bold text-white mt-1">{{ stats.total_books }}</h3>
-            </div>
+<!-- ===== Stats Cards ===== -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+
+    <!-- Total Books -->
+    <div class="glass-panel p-6 flex items-center gap-5 group" data-aos="fade-up" data-aos-delay="0">
+        <div class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500/30 transition-colors">
+            <i data-lucide="book-open" class="w-7 h-7 text-blue-400"></i>
+        </div>
+        <div>
+            <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Total Books</p>
+            <h3 class="text-3xl font-extrabold text-white counter" data-target="{{ stats.total_books }}">0</h3>
         </div>
     </div>
 
-    <div class="glass-panel p-6" data-aos="fade-up" data-aos-delay="200">
-        <div class="flex items-center gap-4">
-            <div class="p-4 rounded-xl bg-purple-500/20 text-purple-400">
-                <i data-lucide="users" class="w-8 h-8"></i>
-            </div>
-            <div>
-                <p class="text-sm text-slate-400 font-medium">Members (Users)</p>
-                <h3 class="text-2xl font-bold text-white mt-1">{{ stats.total_users }}</h3>
-            </div>
+    <!-- Total Users -->
+    <div class="glass-panel p-6 flex items-center gap-5 group" data-aos="fade-up" data-aos-delay="80">
+        <div class="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-500/30 transition-colors">
+            <i data-lucide="users" class="w-7 h-7 text-purple-400"></i>
+        </div>
+        <div>
+            <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Total Users</p>
+            <h3 class="text-3xl font-extrabold text-white counter" data-target="{{ stats.total_users }}">0</h3>
         </div>
     </div>
 
-    <div class="glass-panel p-6" data-aos="fade-up" data-aos-delay="300">
-        <div class="flex items-center gap-4">
-            <div class="p-4 rounded-xl bg-green-500/20 text-green-400">
-                <i data-lucide="arrow-right-left" class="w-8 h-8"></i>
-            </div>
-            <div>
-                <p class="text-sm text-slate-400 font-medium">Active Borrows</p>
-                <h3 class="text-2xl font-bold text-white mt-1">{{ stats.active_borrows }}</h3>
-            </div>
+    <!-- Borrowed Books -->
+    <div class="glass-panel p-6 flex items-center gap-5 group" data-aos="fade-up" data-aos-delay="160">
+        <div class="w-14 h-14 rounded-2xl bg-orange-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-500/30 transition-colors">
+            <i data-lucide="arrow-right-left" class="w-7 h-7 text-orange-400"></i>
+        </div>
+        <div>
+            <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Currently Borrowed</p>
+            <h3 class="text-3xl font-extrabold text-white counter" data-target="{{ stats.active_borrows }}">0</h3>
         </div>
     </div>
 
-    <div class="glass-panel p-6" data-aos="fade-up" data-aos-delay="400">
-        <div class="flex items-center gap-4">
-            <div class="p-4 rounded-xl bg-orange-500/20 text-orange-400">
-                <i data-lucide="tags" class="w-8 h-8"></i>
-            </div>
-            <div>
-                <p class="text-sm text-slate-400 font-medium">Categories</p>
-                <h3 class="text-2xl font-bold text-white mt-1">{{ stats.total_categories }}</h3>
-            </div>
+    <!-- Returned Books -->
+    <div class="glass-panel p-6 flex items-center gap-5 group" data-aos="fade-up" data-aos-delay="240">
+        <div class="w-14 h-14 rounded-2xl bg-green-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-green-500/30 transition-colors">
+            <i data-lucide="check-circle" class="w-7 h-7 text-green-400"></i>
+        </div>
+        <div>
+            <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Returned Books</p>
+            <h3 class="text-3xl font-extrabold text-white counter" data-target="{{ stats.returned_books }}">0</h3>
         </div>
     </div>
 
 </div>
 
-<!-- Recent Borrows Card List -->
-<div class="glass-panel overflow-hidden" data-aos="fade-up" data-aos-delay="500">
-    <div class="p-6 border-b border-gray-600/50 flex justify-between items-center">
-        <h2 class="text-xl font-semibold text-white">Recent Activity (Borrows)</h2>
-        <a href="{{ url_for('borrow') }}" class="text-sm text-blue-400 hover:text-blue-300">View All</a>
+<!-- ===== Charts Row ===== -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+
+    <!-- Borrow Trend Chart (2/3) -->
+    <div class="glass-panel p-6 lg:col-span-2" data-aos="fade-right" data-aos-delay="100">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <h2 class="text-lg font-bold text-white">Borrow Activity</h2>
+                <p class="text-slate-500 text-xs mt-0.5">Borrows vs Returns — last 6 months</p>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-slate-400">
+                <span class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-sm bg-blue-500 inline-block"></span> Borrowed
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-sm bg-green-500 inline-block"></span> Returned
+                </span>
+            </div>
+        </div>
+        <div style="position:relative; height:240px;">
+            <canvas id="borrowChart"></canvas>
+        </div>
     </div>
-    <div class="p-4 space-y-3 bg-slate-900/40">
+
+    <!-- Category Doughnut Chart (1/3) -->
+    <div class="glass-panel p-6" data-aos="fade-left" data-aos-delay="100">
+        <div class="mb-5">
+            <h2 class="text-lg font-bold text-white">Book Categories</h2>
+            <p class="text-slate-500 text-xs mt-0.5">Distribution by category</p>
+        </div>
+        {% if cat_counts %}
+        <div style="position:relative; height:200px;">
+            <canvas id="categoryChart"></canvas>
+        </div>
+        <!-- Legend -->
+        <div class="mt-4 space-y-1.5" id="categoryLegend"></div>
+        {% else %}
+        <div class="flex flex-col items-center justify-center h-48 text-slate-500">
+            <i data-lucide="pie-chart" class="w-10 h-10 mb-3 opacity-40"></i>
+            <p class="text-sm">No category data yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- ===== Recent Activity ===== -->
+<div class="glass-panel overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+    <div class="p-6 border-b border-slate-700/50 flex justify-between items-center">
+        <div>
+            <h2 class="text-lg font-bold text-white">Recent Borrow Activity</h2>
+            <p class="text-slate-500 text-xs mt-0.5">Latest 6 borrow transactions</p>
+        </div>
+        <a href="{{ url_for('borrow') }}"
+           class="glass-btn px-3 py-1.5 rounded-lg text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1.5">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i> View All
+        </a>
+    </div>
+
+    <div class="divide-y divide-slate-700/40">
         {% for record in recent_borrows %}
-        <div class="glass-panel p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group hover:border-blue-500/30 transition-colors">
+        <div class="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors">
             <div class="flex items-center gap-4">
-                <div class="w-10 h-10 rounded-full bg-slate-800/80 flex items-center justify-center border border-slate-700">
-                    <i data-lucide="book-open" class="w-5 h-5 text-blue-400 border-blue-400"></i>
+                <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0">
+                    <i data-lucide="book" class="w-4 h-4 text-blue-400"></i>
                 </div>
                 <div>
-                    <h4 class="text-white font-medium text-base mb-0.5">
+                    <p class="text-white font-semibold text-sm leading-tight">
                         {{ record.book_info[0].title if record.book_info else 'Unknown Book' }}
-                    </h4>
-                    <p class="text-slate-400 text-xs flex items-center gap-1.5">
-                        <i data-lucide="user" class="w-3 h-3 text-purple-400"></i>
+                    </p>
+                    <p class="text-slate-500 text-xs flex items-center gap-1 mt-0.5">
+                        <i data-lucide="user" class="w-3 h-3"></i>
                         {{ record.user_info[0].name if record.user_info else 'Unknown User' }}
                     </p>
                 </div>
             </div>
-            
-            <div class="flex items-center justify-between sm:justify-end gap-6 ml-14 sm:ml-0">
-                <div class="text-xs text-slate-500 text-left sm:text-right">
-                    <span class="block uppercase tracking-wider mb-0.5">Date</span>
-                    <span class="text-slate-300">{{ record.borrow_date.strftime('%b %d, %H:%M') if record.borrow_date else 'N/A' }}</span>
-                </div>
-                <div>
-                    {% if record.status == 'borrowed' %}
-                        <span class="inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-orange-500/10 text-orange-400 border border-orange-500/20">Borrowed</span>
-                    {% else %}
-                        <span class="inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-green-500/10 text-green-400 border border-green-500/20">Returned</span>
-                    {% endif %}
-                </div>
+            <div class="flex items-center gap-4 ml-14 sm:ml-0">
+                <p class="text-slate-500 text-xs">
+                    {{ record.borrow_date.strftime('%d %b %Y') if record.borrow_date else '—' }}
+                </p>
+                {% if record.status == 'borrowed' %}
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-orange-500/10 text-orange-400 border border-orange-500/20">Borrowed</span>
+                {% else %}
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-green-500/10 text-green-400 border border-green-500/20">Returned</span>
+                {% endif %}
             </div>
         </div>
         {% else %}
-        <div class="p-8 text-center flex flex-col items-center justify-center">
-            <i data-lucide="activity" class="w-8 h-8 text-slate-600 mb-3 block mx-auto"></i>
-            <p class="text-slate-400">No recent activity found.</p>
+        <div class="py-12 flex flex-col items-center justify-center text-slate-500">
+            <i data-lucide="activity" class="w-8 h-8 mb-3 opacity-40"></i>
+            <p>No activity yet. Start by issuing a book.</p>
         </div>
         {% endfor %}
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // ── Animated counters ────────────────────────────────────────────────
+    const counters = document.querySelectorAll('.counter');
+    const duration = 1400; // ms
+
+    const animateCounter = (el) => {
+        const target = parseInt(el.getAttribute('data-target'), 10) || 0;
+        if (target === 0) { el.textContent = '0'; return; }
+        const start     = performance.now();
+        const easeOut   = t => 1 - Math.pow(1 - t, 3);
+
+        const tick = (now) => {
+            const elapsed  = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            el.textContent = Math.round(easeOut(progress) * target).toLocaleString();
+            if (progress < 1) requestAnimationFrame(tick);
+            else el.textContent = target.toLocaleString();
+        };
+        requestAnimationFrame(tick);
+    };
+
+    // Trigger counters when they enter the viewport
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                animateCounter(e.target);
+                observer.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    counters.forEach(c => observer.observe(c));
+
+    // ── Shared Chart.js defaults ─────────────────────────────────────────
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = "'Outfit', sans-serif";
+
+    // ── Borrow Activity Bar Chart ────────────────────────────────────────
+    const borrowCtx = document.getElementById('borrowChart');
+    if (borrowCtx) {
+        new Chart(borrowCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ months_labels | tojson }},
+                datasets: [
+                    {
+                        label: 'Borrowed',
+                        data: {{ months_borrows | tojson }},
+                        backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                        borderColor:     'rgba(59, 130, 246, 1)',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    },
+                    {
+                        label: 'Returned',
+                        data: {{ months_returns | tojson }},
+                        backgroundColor: 'rgba(34, 197, 94, 0.5)',
+                        borderColor:     'rgba(34, 197, 94, 1)',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        borderColor: 'rgba(255,255,255,0.08)',
+                        borderWidth: 1,
+                        padding: 12,
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#94a3b8',
+                        cornerRadius: 10,
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        ticks: { color: '#64748b' },
+                        border: { display: false }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        ticks: { color: '#64748b', precision: 0 },
+                        border: { display: false },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Category Doughnut Chart ──────────────────────────────────────────
+    const catCtx = document.getElementById('categoryChart');
+    if (catCtx) {
+        const palette = [
+            '#3b82f6','#8b5cf6','#06b6d4','#10b981',
+            '#f59e0b','#ef4444','#ec4899','#6366f1'
+        ];
+        const catLabels = {{ cat_labels | tojson }};
+        const catCounts = {{ cat_counts | tojson }};
+
+        new Chart(catCtx, {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catCounts,
+                    backgroundColor: palette.map(c => c + 'cc'),
+                    borderColor:     palette,
+                    borderWidth: 2,
+                    hoverOffset: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        borderColor: 'rgba(255,255,255,0.08)',
+                        borderWidth: 1,
+                        padding: 10,
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#94a3b8',
+                        cornerRadius: 10,
+                        callbacks: {
+                            label: ctx => ` ${ctx.label}: ${ctx.parsed} book${ctx.parsed !== 1 ? 's' : ''}`
+                        }
+                    }
+                }
+            }
+        });
+
+        // Build custom legend
+        const legendEl = document.getElementById('categoryLegend');
+        catLabels.forEach((lbl, i) => {
+            legendEl.innerHTML += `
+                <div class="flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-2.5 h-2.5 rounded-sm flex-shrink-0" style="background:${palette[i % palette.length]}"></span>
+                        <span class="text-slate-400 truncate">${lbl}</span>
+                    </div>
+                    <span class="text-slate-300 font-bold ml-2">${catCounts[i]}</span>
+                </div>`;
+        });
+    }
+
+});
+</script>
 {% endblock %}

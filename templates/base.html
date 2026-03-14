@@ -3,93 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Management System</title>
-    
-    <!-- Tailwind CSS (via CDN for simplicity in lab projects) -->
+    <title>{% block title %}LMS{% endblock %} — Library Management</title>
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Google Fonts (Outfit) -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <!-- AOS Animation CSS -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    
+
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="antialiased text-slate-200">
+<body class="antialiased text-slate-200 flex overflow-x-hidden">
 
-    <!-- Navigation Bar -->
-    <nav class="glass-nav fixed w-full z-50 top-0 start-0 border-b border-gray-600">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-          <div class="flex">
-            <!-- Logo -->
-            <div class="flex-shrink-0 flex items-center">
-              <a href="{{ url_for('dashboard') }}" class="flex items-center gap-2 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-                <i data-lucide="library" class="text-blue-400"></i> LMS
-              </a>
-            </div>
-            <!-- Links -->
-            <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <a href="{{ url_for('dashboard') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-blue-400 hover:text-blue-400 text-sm font-medium transition-colors">
-                Dashboard
-              </a>
-              <a href="{{ url_for('books') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-blue-400 hover:text-blue-400 text-sm font-medium transition-colors">
-                Books
-              </a>
-              <a href="{{ url_for('users') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-blue-400 hover:text-blue-400 text-sm font-medium transition-colors">
-                Users
-              </a>
-              <a href="{{ url_for('borrow') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-blue-400 hover:text-blue-400 text-sm font-medium transition-colors">
-                Issue Book
-              </a>
-              <a href="{{ url_for('return_books') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-blue-400 hover:text-blue-400 text-sm font-medium transition-colors">
-                Returns
-              </a>
-            </div>
-          </div>
-          <div class="flex items-center gap-4">
-              {% if session.get('admin_logged_in') %}
-              <button class="glass-btn p-2 rounded-full text-slate-300 hover:text-white">
-                  <i data-lucide="bell" class="w-5 h-5"></i>
-              </button>
-              <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center font-bold text-white shadow-lg">
-                  A
-              </div>
-              <a href="{{ url_for('logout') }}" class="glass-btn px-3 py-1.5 text-sm rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-2">
-                  <i data-lucide="log-out" class="w-4 h-4"></i> Logout
-              </a>
-              {% endif %}
-          </div>
+{% if session.get('admin_logged_in') %}
+
+<!-- ======================================================
+     SIDEBAR
+====================================================== -->
+<aside id="sidebar"
+    class="sidebar fixed left-0 top-0 h-full z-40 flex flex-col transition-all duration-300"
+    style="width:260px">
+
+    <!-- Logo -->
+    <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-700/50">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30">
+            <i data-lucide="library" class="w-5 h-5 text-white"></i>
         </div>
-      </div>
+        <div class="sidebar-text overflow-hidden">
+            <p class="font-extrabold text-white text-base leading-none">LMS</p>
+            <p class="text-[10px] text-slate-500 tracking-wider uppercase mt-0.5">Library System</p>
+        </div>
+    </div>
+
+    <!-- Nav Links -->
+    <nav class="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
+        <p class="text-[10px] uppercase tracking-widest text-slate-600 font-semibold px-3 mb-3 sidebar-text">Main Menu</p>
+
+        {% set nav_items = [
+            ('dashboard', 'layout-dashboard', 'Dashboard'),
+            ('books',     'book-open',         'Books'),
+            ('users',     'users',              'Users'),
+            ('borrow',    'book-plus',          'Issue Book'),
+            ('return_books', 'corner-down-left','Returns'),
+        ] %}
+
+        {% for endpoint, icon, label in nav_items %}
+        {% set is_active = request.endpoint == endpoint %}
+        <a href="{{ url_for(endpoint) }}"
+           class="nav-link flex items-center gap-3.5 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 group relative
+                  {% if is_active %}bg-blue-600/20 text-blue-400 border border-blue-500/30{% else %}text-slate-400 hover:text-white hover:bg-white/5{% endif %}">
+            {% if is_active %}
+            <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-blue-500 rounded-r-full"></span>
+            {% endif %}
+            <i data-lucide="{{ icon }}" class="w-4.5 h-4.5 flex-shrink-0 {% if is_active %}text-blue-400{% else %}text-slate-500 group-hover:text-slate-300{% endif %}"></i>
+            <span class="sidebar-text truncate">{{ label }}</span>
+        </a>
+        {% endfor %}
     </nav>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 min-h-screen">
+    <!-- User Footer -->
+    <div class="px-4 py-4 border-t border-slate-700/50">
+        <div class="flex items-center gap-3 px-2 py-2">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
+                A
+            </div>
+            <div class="sidebar-text overflow-hidden flex-1">
+                <p class="text-white text-xs font-semibold truncate">Admin</p>
+                <p class="text-slate-500 text-[10px] truncate">admin@library.com</p>
+            </div>
+            <a href="{{ url_for('logout') }}"
+               class="sidebar-text ml-auto p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors flex-shrink-0"
+               title="Logout">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<!-- ======================================================
+     MAIN WRAPPER
+====================================================== -->
+<div id="mainWrapper" class="flex-1 flex flex-col min-h-screen transition-all duration-300" style="margin-left:260px">
+
+    <!-- Top Header Bar -->
+    <header class="sticky top-0 z-30 glass-nav border-b border-slate-700/50 px-6 py-3 flex items-center justify-between gap-4">
+
+        <!-- Sidebar Toggle + Page Title -->
+        <div class="flex items-center gap-4">
+            <button id="sidebarToggle"
+                class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                title="Toggle sidebar">
+                <i data-lucide="panel-left-close" id="toggleIcon" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Breadcrumb Page Name -->
+            <div class="hidden sm:flex items-center gap-2 text-sm text-slate-500">
+                <i data-lucide="home" class="w-3.5 h-3.5"></i>
+                <span>/</span>
+                <span class="text-slate-300 font-medium capitalize">
+                    {% if request.endpoint == 'dashboard' %}Dashboard
+                    {% elif request.endpoint == 'books' %}Books
+                    {% elif request.endpoint == 'users' %}Users
+                    {% elif request.endpoint == 'borrow' %}Issue Book
+                    {% elif request.endpoint == 'return_books' %}Returns
+                    {% else %}{{ request.endpoint | capitalize }}{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Right Actions -->
+        <div class="flex items-center gap-3">
+            <!-- Quick Stats Pill -->
+            <div class="hidden md:flex items-center gap-3 bg-slate-800/60 rounded-full px-4 py-1.5 border border-slate-700/60 text-xs text-slate-400">
+                <i data-lucide="database" class="w-3.5 h-3.5 text-blue-400"></i>
+                <span>MongoDB Connected</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+            </div>
+
+            <!-- Logout button (visible on mobile) -->
+            <a href="{{ url_for('logout') }}"
+               class="flex md:hidden items-center gap-2 glass-btn px-3 py-1.5 rounded-lg text-sm text-red-400 hover:text-red-300 font-medium">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+            </a>
+
+            <!-- Avatar -->
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center font-bold text-white text-sm shadow-md">
+                A
+            </div>
+        </div>
+    </header>
+
+    <!-- ── Page Content ── -->
+    <main class="flex-1 px-6 py-8 page-content" id="pageContent">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="glass-nav py-6 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-slate-400">
-            &copy; 2026 Library Management System. DBMS Lab Mini Project. <br/> Developed with Flask and MongoDB.
-        </div>
+    <footer class="px-6 py-4 border-t border-slate-700/30 text-center text-xs text-slate-600">
+        &copy; 2026 Library Management System &mdash; DBMS Lab Mini Project &mdash; Developed with Flask &amp; MongoDB.
     </footer>
 
-    <!-- Lucide Icons Library -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- AOS Animation Library -->
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    
-    <!-- Custom JS -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    
-    {% block extra_js %}{% endblock %}
+</div><!-- /mainWrapper -->
+
+{% else %}
+<!-- Not logged in: full-screen content (login page) -->
+<div class="w-full min-h-screen">
+    {% block content %}{% endblock %}
+</div>
+{% endif %}
+
+<!-- ── Scripts ── -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+<script>
+(function () {
+    // ── Sidebar collapse/expand ────────────────────────────────────────
+    const sidebar      = document.getElementById('sidebar');
+    const mainWrapper  = document.getElementById('mainWrapper');
+    const toggleIcon   = document.getElementById('toggleIcon');
+    const sidebarBtn   = document.getElementById('sidebarToggle');
+
+    if (!sidebar) return;
+
+    let collapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+
+    function applySidebar() {
+        if (collapsed) {
+            sidebar.style.width      = '72px';
+            mainWrapper.style.marginLeft = '72px';
+            sidebar.querySelectorAll('.sidebar-text').forEach(el => {
+                el.style.opacity = '0';
+                el.style.width   = '0';
+                el.style.overflow = 'hidden';
+            });
+            toggleIcon.setAttribute('data-lucide', 'panel-left-open');
+        } else {
+            sidebar.style.width      = '260px';
+            mainWrapper.style.marginLeft = '260px';
+            sidebar.querySelectorAll('.sidebar-text').forEach(el => {
+                el.style.opacity  = '1';
+                el.style.width    = '';
+                el.style.overflow = '';
+            });
+            toggleIcon.setAttribute('data-lucide', 'panel-left-close');
+        }
+        lucide.createIcons();
+    }
+
+    applySidebar();
+
+    sidebarBtn && sidebarBtn.addEventListener('click', () => {
+        collapsed = !collapsed;
+        localStorage.setItem('sidebarCollapsed', collapsed);
+        applySidebar();
+    });
+
+    // ── Mobile: close sidebar on small screens on load ─────────────────
+    if (window.innerWidth < 768) {
+        collapsed = true;
+        applySidebar();
+    }
+
+    // ── Page transition fade-in ────────────────────────────────────────
+    const pageContent = document.getElementById('pageContent');
+    if (pageContent) {
+        pageContent.style.opacity = '0';
+        pageContent.style.transform = 'translateY(8px)';
+        pageContent.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+        setTimeout(() => {
+            pageContent.style.opacity  = '1';
+            pageContent.style.transform = 'translateY(0)';
+        }, 60);
+    }
+
+    // ── Intercept nav links for smooth page transition ─────────────────
+    document.querySelectorAll('a.nav-link').forEach(link => {
+        link.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (!href || href.startsWith('#')) return;
+            e.preventDefault();
+            if (pageContent) {
+                pageContent.style.opacity   = '0';
+                pageContent.style.transform = 'translateY(8px)';
+            }
+            setTimeout(() => { window.location.href = href; }, 280);
+        });
+    });
+})();
+</script>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>

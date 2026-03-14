@@ -53,33 +53,80 @@ def logout():
 @app.route('/')
 @login_required
 def dashboard():
-    """Render the main dashboard with summary statistics."""
+    """Render the main dashboard with summary stats and chart data."""
+    from datetime import timedelta
+    import calendar
+
+    # ── Core stats ──────────────────────────────────────────────────────
+    total_books      = books_collection.count_documents({})
+    total_users      = users_collection.count_documents({})
+    active_borrows   = borrow_records_collection.count_documents({'status': 'borrowed'})
+    returned_books   = borrow_records_collection.count_documents({'status': 'returned'})
+    total_categories = categories_collection.count_documents({})
+
     stats = {
-        'total_books': books_collection.count_documents({}),
-        'total_users': users_collection.count_documents({}),
-        'active_borrows': borrow_records_collection.count_documents({'status': 'borrowed'}),
-        'total_categories': categories_collection.count_documents({})
+        'total_books':      total_books,
+        'total_users':      total_users,
+        'active_borrows':   active_borrows,
+        'returned_books':   returned_books,
+        'total_categories': total_categories,
     }
-    
-    # Get recent borrow records for the dashboard table
+
+    # ── Borrow trend: last 6 months ──────────────────────────────────────
+    today = datetime.now()
+    months_labels = []
+    months_borrows = []
+    months_returns = []
+
+    for i in range(5, -1, -1):
+        # First day of the month i months ago
+        target = (today.replace(day=1) - timedelta(days=1)) if i == 0 else today
+        # Go back i months
+        month_offset = (today.month - i - 1) % 12 + 1
+        year_offset  = today.year - ((i - today.month + 1) // 12 + (1 if (today.month - i) <= 0 else 0))
+        first_day = datetime(year_offset, month_offset, 1)
+        last_day  = datetime(year_offset, month_offset,
+                             calendar.monthrange(year_offset, month_offset)[1], 23, 59, 59)
+
+        borrows = borrow_records_collection.count_documents({
+            'borrow_date': {'$gte': first_day, '$lte': last_day}
+        })
+        returns = borrow_records_collection.count_documents({
+            'return_date': {'$gte': first_day, '$lte': last_day},
+            'status': 'returned'
+        })
+        months_labels.append(first_day.strftime('%b %Y'))
+        months_borrows.append(borrows)
+        months_returns.append(returns)
+
+    # ── Category distribution ─────────────────────────────────────────────
+    category_pipeline = [
+        {'$group': {'_id': '$category', 'count': {'$sum': 1}}},
+        {'$sort': {'count': -1}},
+        {'$limit': 8}
+    ]
+    cat_data   = list(books_collection.aggregate(category_pipeline))
+    cat_labels = [d['_id'] if d['_id'] else 'Uncategorized' for d in cat_data]
+    cat_counts = [d['count'] for d in cat_data]
+
+    # ── Recent borrow activity (last 6 records) ───────────────────────────
     recent_borrows = list(borrow_records_collection.aggregate([
-        {"$sort": {"borrow_date": -1}},
-        {"$limit": 5},
-        {"$lookup": {
-            "from": "books",
-            "localField": "book_id",
-            "foreignField": "_id",
-            "as": "book_info"
-        }},
-        {"$lookup": {
-            "from": "users",
-            "localField": "user_id",
-            "foreignField": "_id",
-            "as": "user_info"
-        }}
+        {'$sort': {'borrow_date': -1}},
+        {'$limit': 6},
+        {'$lookup': {'from': 'books',  'localField': 'book_id',  'foreignField': '_id', 'as': 'book_info'}},
+        {'$lookup': {'from': 'users',  'localField': 'user_id',  'foreignField': '_id', 'as': 'user_info'}},
     ]))
-    
-    return render_template('dashboard.html', stats=stats, recent_borrows=recent_borrows)
+
+    return render_template(
+        'dashboard.html',
+        stats          = stats,
+        recent_borrows = recent_borrows,
+        months_labels  = months_labels,
+        months_borrows = months_borrows,
+        months_returns = months_returns,
+        cat_labels     = cat_labels,
+        cat_counts     = cat_counts,
+    )
 
 # ==========================================
 # Books Routes (CRUD)

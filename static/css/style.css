@@ -180,6 +180,10 @@ table {
   border-spacing: 0;
 }
 
+.min-w-table {
+  min-width: 850px;
+}
+
 th, td {
   padding: 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -250,9 +254,28 @@ dialog::backdrop {
   /* Tables horizontally scrollable on mobile */
   .overflow-x-auto {
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
   }
-  .overflow-x-auto::-webkit-scrollbar { display: none; }
+  
+  .table-scroll-hint::after {
+    content: "← Scroll to view more →";
+    display: block;
+    text-align: center;
+    font-size: 10px;
+    color: #64748b;
+    padding: 8px 0;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .px-5 { padding-left: 1rem !important; padding-right: 1rem !important; }
+
+  /* Ensure actions are visible on mobile since hover is unreliable */
+  .group-hover\:opacity-100 {
+    opacity: 1 !important;
+  }
 }
 
 #sidebarOverlay.opacity-100 {

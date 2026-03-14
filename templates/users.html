@@ -103,7 +103,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Role</label>
-                    <select name="role" class="glass-input w-full px-4 py-2.5 rounded-xl appearance-none bg-slate-800 text-white text-sm">
+                    <select name="role" class="glass-input w-full px-4 py-2.5 rounded-xl appearance-none text-white text-sm">
                         <option value="student"  {% if user.role == 'student'  %}selected{% endif %}>Student</option>
                         <option value="faculty"  {% if user.role == 'faculty'  %}selected{% endif %}>Faculty</option>
                         <option value="staff"    {% if user.role == 'staff'    %}selected{% endif %}>Staff</option>
@@ -166,7 +166,7 @@
             </div>
             <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Role</label>
-                <select name="role" required class="glass-input w-full px-4 py-2.5 rounded-xl appearance-none bg-slate-800 text-white text-sm">
+                <select name="role" required class="glass-input w-full px-4 py-2.5 rounded-xl appearance-none text-white text-sm">
                     <option value="student">Student</option>
                     <option value="faculty">Faculty</option>
                     <option value="staff">Staff</option>

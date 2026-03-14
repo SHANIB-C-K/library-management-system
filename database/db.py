@@ -74,32 +74,33 @@ def borrow_book(user_id, book_id, borrow_date=None, due_date=None, status="borro
     result = borrow_records_collection.insert_one(record)
     return result.inserted_id
 
-def return_book(borrow_id, return_date=None, fine=0.0):
-    """Process a return, log it, and increment book available copies."""
+def return_book(borrow_id, return_date=None, fine=0.0, condition='good'):
+    """Process a return, log it with condition & fine, increment book available copies."""
     if return_date is None:
         return_date = datetime.now()
-        
+
     borrow_record = borrow_records_collection.find_one({'_id': ObjectId(borrow_id)})
     if not borrow_record or borrow_record['status'] == 'returned':
         return None
-        
-    # Update borrow record
+
+    # Mark the borrow record as returned
     borrow_records_collection.update_one(
         {'_id': ObjectId(borrow_id)},
         {'$set': {'status': 'returned', 'return_date': return_date}}
     )
-    
-    # Increment availability
+
+    # Put the copy back into the books collection
     books_collection.update_one(
         {'_id': borrow_record['book_id']},
         {'$inc': {'available': 1}}
     )
-    
-    # Log the return
+
+    # Insert full return record (condition + fine stored for audit trail)
     return_record = {
-        'borrow_id': ObjectId(borrow_id),
+        'borrow_id':   ObjectId(borrow_id),
         'return_date': return_date,
-        'fine': fine
+        'condition':   condition,
+        'fine':        fine
     }
     result = returns_collection.insert_one(return_record)
     return result.inserted_id

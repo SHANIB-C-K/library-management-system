@@ -8,7 +8,7 @@ from config import Config
 from database.db import (
     users_collection, books_collection, borrow_records_collection,
     returns_collection, categories_collection,
-    insert_book, get_all_books, borrow_book, return_book, add_user, get_user_list
+    insert_book, get_all_books, borrow_book, return_book as db_return_book, add_user, get_user_list
 )
 
 app = Flask(__name__)
@@ -321,19 +321,59 @@ def return_books():
         }}
     ]))
     
-    return render_template('return.html', returns=return_history, active_borrows=active_borrows)
+    return render_template('return.html', returns=return_history, active_borrows=active_borrows, now_date=datetime.now())
+
+@app.route('/return_book', methods=['POST'])
+@login_required
+def return_book_route():
+    """
+    Process a book return with automatic overdue fine calculation.
+    Fine rules:
+      - Late return: ₹5 per overdue day
+      - Damaged condition: ₹100 extra
+      - Lost: ₹500 extra
+    """
+    borrow_id = request.form.get('borrow_id')
+    condition  = request.form.get('condition', 'good')
+
+    if not borrow_id:
+        return redirect(url_for('return_books'))
+
+    # Fetch the borrow record to inspect due_date
+    borrow_record = borrow_records_collection.find_one({'_id': ObjectId(borrow_id)})
+    if not borrow_record:
+        return redirect(url_for('return_books'))
+
+    today       = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    return_date = datetime.now()
+    fine        = 0.0
+
+    # ── Late return fine ────────────────────────────────────────────────
+    due_date = borrow_record.get('due_date')
+    if due_date:
+        due_date_clean = due_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        if today > due_date_clean:
+            overdue_days = (today - due_date_clean).days
+            fine += overdue_days * 5.0   # ₹5 per day
+
+    # ── Condition-based fine ────────────────────────────────────────────
+    if condition == 'damaged':
+        fine += 100.0
+    elif condition == 'lost':
+        fine += 500.0
+
+    # Call the updated db helper
+    res = db_return_book(borrow_id, return_date=return_date, fine=round(fine, 2), condition=condition)
+
+    if res:
+        return redirect(url_for('return_books', success=1, fine=round(fine, 2), condition=condition))
+    else:
+        return redirect(url_for('return_books', error='already_returned'))
 
 @app.route('/return/add', methods=['POST'])
 @login_required
 def process_return():
-    """Process a book return."""
-    borrow_id = request.form.get('borrow_id')
-    condition = request.form.get('condition', 'good')
-    fine = float(request.form.get('fine', 0.0))
-    
-    # Process return using the db helper
-    return_book(borrow_id, return_date=datetime.now(), fine=fine)
-    
+    """Legacy redirect — kept for backwards compatibility."""
     return redirect(url_for('return_books'))
 
 if __name__ == '__main__':

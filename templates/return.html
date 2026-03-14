@@ -1,113 +1,225 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex flex-col md:flex-row gap-8">
-    
-    <!-- Return Form (Left Column) -->
-    <div class="w-full md:w-1/3" data-aos="fade-right">
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-white mb-2">Return Book</h1>
-            <p class="text-slate-400">Process returned books and handle fines.</p>
-        </div>
-        
-        <div class="glass-panel p-6 border-t-4 border-green-500">
-            <form action="{{ url_for('process_return') }}" method="POST" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Select Borrowed Book</label>
-                    <select name="borrow_id" required class="glass-input w-full px-4 py-3 rounded-lg appearance-none bg-slate-800 text-white focus:ring focus:ring-green-500/50">
-                        <option value="">-- Choose Book to Return --</option>
-                        {% for record in active_borrows %}
-                        <option value="{{ record._id }}">
-                            {{ record.book_info[0].title }} - {{ record.user_info[0].name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Condition</label>
-                    <select name="condition" required class="glass-input w-full px-4 py-3 rounded-lg appearance-none bg-slate-800 text-white focus:ring focus:ring-green-500/50">
-                        <option value="good">Good (No Damage)</option>
-                        <option value="fair">Fair (Minor Wear)</option>
-                        <option value="damaged">Damaged (Requires Fine)</option>
-                        <option value="lost">Lost</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Fine Amount ($)</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-slate-500">$</span>
-                        </div>
-                        <input type="number" step="0.01" name="fine" value="0.00" min="0" required class="glass-input w-full pl-8 pr-4 py-3 rounded-lg bg-slate-800 text-white">
-                    </div>
-                </div>
-                
-                <div class="pt-4">
-                    <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white py-3 rounded-lg shadow-lg shadow-green-500/25 font-bold transition-all hover:-translate-y-1">
-                        Process Return
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Return History (Right Column) -->
-    <div class="w-full md:w-2/3" data-aos="fade-left" data-aos-delay="100">
-        <div class="mb-6">
-            <h2 class="text-2xl font-bold text-white mb-2">Return History</h2>
-            <p class="text-slate-400">Recently returned books log.</p>
-        </div>
-        
+<div class="mb-8" data-aos="fade-down">
+    <h1 class="text-3xl font-bold text-white mb-2">Return Book</h1>
+    <p class="text-slate-400">Process returns and view history. Late returns incur an automatic fine of <span class="text-orange-400 font-semibold">₹5 / day</span>.</p>
+</div>
+
+<div class="flex flex-col lg:flex-row gap-8">
+
+    <!-- ===== ACTIVE BORROWS — Return Buttons (Left) ===== -->
+    <div class="w-full lg:w-3/5" data-aos="fade-right">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+            <div class="p-2 rounded-lg bg-blue-500/20 text-blue-400">
+                <i data-lucide="book-open" class="w-5 h-5"></i>
+            </div>
+            Books Currently Out
+            {% if active_borrows %}
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                {{ active_borrows | length }}
+            </span>
+            {% endif %}
+        </h2>
+
         <div class="space-y-4">
-            {% for return_item in returns %}
-            <div class="glass-panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:-translate-y-1 transition-transform border-l-4 {% if return_item.condition == 'good' %}border-l-green-500/50{% elif return_item.condition == 'fair' %}border-l-yellow-500/50{% else %}border-l-red-500/50{% endif %}">
-                
-                <div class="flex-1">
-                    <h3 class="text-white font-bold text-lg mb-1">
-                        {{ return_item.book_info[0].title if return_item.book_info else 'Unknown Book' }}
-                    </h3>
-                    <p class="text-slate-400 text-sm flex items-center gap-2">
-                        <i data-lucide="user" class="w-4 h-4"></i>
-                        {{ return_item.user_info[0].name if return_item.user_info else 'Unknown User' }}
-                    </p>
-                </div>
-                
-                <div class="flex flex-col sm:items-end gap-2 text-sm w-full sm:w-auto">
-                    <div class="flex justify-between sm:justify-end items-center gap-4 w-full">
-                        <div class="text-slate-400 text-xs text-right">
-                            <span class="block uppercase tracking-wider text-slate-500 mb-0.5">Returned On</span>
-                            {{ return_item.return_date.strftime('%b %d, %Y') }}
-                        </div>
-                        <div class="bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-700 min-w-[100px] text-center">
-                            {% if return_item.condition == 'good' %}
-                                <span class="text-green-400 font-medium flex items-center justify-center gap-1.5"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Good</span>
-                            {% elif return_item.condition == 'fair' %}
-                                <span class="text-yellow-400 font-medium">Fair</span>
-                            {% else %}
-                                <span class="text-red-400 font-medium flex items-center justify-center gap-1.5"><i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> {{ return_item.condition | capitalize }}</span>
+            {% for record in active_borrows %}
+            {% set today = now_date %}
+            {% set is_overdue = record.due_date and record.due_date < today %}
+            <div class="glass-panel p-5 border-l-4 {% if is_overdue %}border-l-red-500{% else %}border-l-blue-500/50{% endif %} hover:-translate-y-1 transition-transform">
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <!-- Book & Member Info -->
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-white font-bold text-base mb-1 truncate flex items-center gap-2">
+                            {% if is_overdue %}
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30 uppercase tracking-wider flex-shrink-0">
+                                Overdue
+                            </span>
                             {% endif %}
+                            {{ record.book_info[0].title if record.book_info else 'Unknown Book' }}
+                        </h3>
+                        <p class="text-slate-400 text-sm flex items-center gap-2 mb-3">
+                            <i data-lucide="user" class="w-4 h-4 text-purple-400 flex-shrink-0"></i>
+                            {{ record.user_info[0].name if record.user_info else 'Unknown Member' }}
+                        </p>
+                        <!-- Date chips -->
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            <span class="bg-slate-800/60 border border-slate-700 px-2.5 py-1 rounded-md">
+                                <span class="text-slate-500">Borrowed:</span>
+                                <span class="text-slate-300 ml-1 font-medium">{{ record.borrow_date.strftime('%d %b %Y') if record.borrow_date else 'N/A' }}</span>
+                            </span>
+                            <span class="{% if is_overdue %}bg-red-500/10 border-red-500/30 text-red-300{% else %}bg-orange-500/10 border-orange-500/20 text-orange-300{% endif %} border px-2.5 py-1 rounded-md font-medium">
+                                <span class="{% if is_overdue %}text-red-400/70{% else %}text-orange-400/70{% endif %} mr-1">Due:</span>
+                                {{ record.due_date.strftime('%d %b %Y') if record.due_date else 'Not set' }}
+                            </span>
                         </div>
                     </div>
-                    {% if return_item.fine > 0 %}
-                    <div class="bg-red-500/10 border border-red-500/20 px-3 py-1 rounded w-full sm:w-auto text-right">
-                        <span class="text-red-400 font-bold flex items-center justify-end gap-1"><i data-lucide="receipt" class="w-3 h-3"></i> Fine: ${{ "%.2f"|format(return_item.fine) }}</span>
-                    </div>
-                    {% endif %}
+
+                    <!-- Return Form -->
+                    <form action="{{ url_for('return_book_route') }}" method="POST" class="flex flex-col gap-3 w-full sm:w-56 shrink-0">
+                        <input type="hidden" name="borrow_id" value="{{ record._id }}">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wider">Condition</label>
+                            <select name="condition" class="glass-input w-full px-3 py-2 rounded-lg appearance-none bg-slate-800/80 text-white text-sm focus:ring-2 focus:ring-green-500/50">
+                                <option value="good">Good — No damage</option>
+                                <option value="fair">Fair — Minor wear</option>
+                                <option value="damaged">Damaged (+₹100)</option>
+                                <option value="lost">Lost (+₹500)</option>
+                            </select>
+                        </div>
+                        <button type="submit"
+                            class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white py-2 px-4 rounded-xl shadow-lg shadow-green-500/20 font-bold text-sm transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            <i data-lucide="corner-down-left" class="w-4 h-4"></i>
+                            Return Book
+                        </button>
+                    </form>
                 </div>
             </div>
             {% else %}
-            <div class="glass-panel p-12 text-center flex flex-col items-center justify-center">
-                <div class="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mb-4">
-                    <i data-lucide="history" class="w-8 h-8 text-slate-500"></i>
+            <div class="glass-panel p-14 text-center flex flex-col items-center justify-center">
+                <div class="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mb-4 border border-green-500/20">
+                    <i data-lucide="check-circle" class="w-8 h-8 text-green-400"></i>
                 </div>
-                <h3 class="text-lg font-medium text-white mb-2">No returns processed yet</h3>
-                <p class="text-slate-400">Returned books will appear here along with condition assessments.</p>
+                <h3 class="text-lg font-semibold text-white mb-1">All Books Returned!</h3>
+                <p class="text-slate-400">There are currently no outstanding borrow records.</p>
             </div>
             {% endfor %}
         </div>
     </div>
-    
+
+    <!-- ===== RETURN HISTORY (Right) ===== -->
+    <div class="flex-1" data-aos="fade-left" data-aos-delay="100">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
+            <div class="p-2 rounded-lg bg-purple-500/20 text-purple-400">
+                <i data-lucide="history" class="w-5 h-5"></i>
+            </div>
+            Return History
+        </h2>
+
+        <div class="space-y-3">
+            {% for return_item in returns %}
+            <div class="glass-panel p-4 border-l-4
+                {% if return_item.condition == 'good' %}border-l-green-500/50
+                {% elif return_item.condition == 'fair' %}border-l-yellow-500/50
+                {% else %}border-l-red-500/60{% endif %}
+                hover:-translate-y-1 transition-transform">
+
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-white font-semibold text-sm truncate mb-0.5">
+                            {{ return_item.book_info[0].title if return_item.book_info else 'Unknown Book' }}
+                        </h4>
+                        <p class="text-slate-500 text-xs flex items-center gap-1.5">
+                            <i data-lucide="user" class="w-3 h-3"></i>
+                            {{ return_item.user_info[0].name if return_item.user_info else 'Unknown' }}
+                        </p>
+                        <p class="text-slate-600 text-xs mt-1">
+                            {{ return_item.return_date.strftime('%d %b %Y, %I:%M %p') if return_item.return_date else '' }}
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col items-end gap-1.5 text-xs shrink-0">
+                        <!-- Condition badge -->
+                        {% if return_item.condition == 'good' %}
+                            <span class="px-2 py-0.5 rounded bg-green-500/10 text-green-400 border border-green-500/20 font-medium flex items-center gap-1">
+                                <i data-lucide="check-circle" class="w-3 h-3"></i> Good
+                            </span>
+                        {% elif return_item.condition == 'fair' %}
+                            <span class="px-2 py-0.5 rounded bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 font-medium">Fair</span>
+                        {% elif return_item.condition == 'damaged' %}
+                            <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 font-medium flex items-center gap-1">
+                                <i data-lucide="alert-triangle" class="w-3 h-3"></i> Damaged
+                            </span>
+                        {% else %}
+                            <span class="px-2 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30 font-bold">Lost</span>
+                        {% endif %}
+
+                        <!-- Fine badge (only if > 0) -->
+                        {% if return_item.fine and return_item.fine > 0 %}
+                        <span class="px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 font-bold flex items-center gap-1">
+                            <i data-lucide="receipt" class="w-3 h-3"></i> ₹{{ "%.0f"|format(return_item.fine) }}
+                        </span>
+                        {% else %}
+                        <span class="text-slate-600 font-medium">No fine</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="glass-panel p-10 text-center flex flex-col items-center justify-center">
+                <i data-lucide="history" class="w-8 h-8 text-slate-600 mb-3"></i>
+                <p class="text-slate-400">No return history yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+
+    // ── Success alert ────────────────────────────────────────────────────
+    if (params.get('success') === '1') {
+        const fine      = parseFloat(params.get('fine') || '0');
+        const condition = params.get('condition') || 'good';
+
+        const conditionLabels = {
+            good:    '<span style="color:#34d399">✔ Good condition</span>',
+            fair:    '<span style="color:#fbbf24">Fair condition</span>',
+            damaged: '<span style="color:#f87171">⚠ Damaged</span>',
+            lost:    '<span style="color:#ef4444">✖ Lost</span>'
+        };
+        const conditionHtml = conditionLabels[condition] || condition;
+
+        let fineHtml = '';
+        if (fine > 0) {
+            fineHtml = `<div style="margin-top:12px;padding:10px 16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:10px;">
+                <p style="color:#f87171;font-size:1.1rem;font-weight:700;margin:0">Fine Charged: ₹${fine.toFixed(2)}</p>
+                <p style="color:#94a3b8;font-size:0.8rem;margin:4px 0 0">Auto-calculated (overdue days × ₹5 + condition penalty)</p>
+            </div>`;
+        } else {
+            fineHtml = `<p style="color:#34d399;margin-top:10px;font-size:0.9rem">✔ No fine — returned on time!</p>`;
+        }
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Book Returned! 📚',
+            html: `<p style="color:#cbd5e1">The book has been successfully returned.</p>
+                   <p style="margin:8px 0 4px;color:#94a3b8;font-size:0.85rem">Condition: ${conditionHtml}</p>
+                   ${fineHtml}`,
+            background: '#0f172a',
+            color: '#f1f5f9',
+            iconColor: '#34d399',
+            confirmButtonColor: '#22c55e',
+            confirmButtonText: 'Done',
+            customClass: {
+                popup: 'rounded-2xl border border-slate-700 shadow-2xl',
+                confirmButton: 'rounded-xl px-6 font-semibold'
+            }
+        });
+        window.history.replaceState({}, '', '{{ url_for("return_books") }}');
+    }
+
+    // ── Error alert ──────────────────────────────────────────────────────
+    if (params.get('error') === 'already_returned') {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Already Returned',
+            text: 'This book has already been marked as returned.',
+            background: '#0f172a',
+            color: '#f1f5f9',
+            confirmButtonColor: '#f59e0b',
+            customClass: {
+                popup: 'rounded-2xl border border-slate-700 shadow-2xl',
+                confirmButton: 'rounded-xl px-6 font-semibold'
+            }
+        });
+        window.history.replaceState({}, '', '{{ url_for("return_books") }}');
+    }
+});
+</script>
 {% endblock %}

@@ -181,7 +181,11 @@ table {
 }
 
 .min-w-table {
-  min-width: 850px;
+  min-width: 1000px;
+}
+
+table th {
+  white-space: nowrap;
 }
 
 th, td {
@@ -253,9 +257,12 @@ dialog::backdrop {
   
   /* Tables horizontally scrollable on mobile */
   .overflow-x-auto {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.1) transparent;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
   }
   
   .table-scroll-hint::after {

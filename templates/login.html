@@ -24,10 +24,21 @@
                 </div>
                 <h1 class="text-3xl font-bold text-white tracking-tight">Welcome Back</h1>
                 <p class="text-slate-400 mt-2 text-sm">Library Management System Login</p>
+                
+                {% with messages = get_flashed_messages(category_filter=["error"]) %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-center gap-2">
+                                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
             </div>
 
-            <!-- Note: Form redirects straight to dashboard for simple display purposes in the DBMS lab -->
-            <form action="{{ url_for('dashboard') }}" method="GET" class="space-y-6">
+            <!-- Authentic Login Form -->
+            <form action="{{ url_for('login') }}" method="POST" class="space-y-6">
                 <div>
                     <label class="block text-sm font-medium text-slate-300 mb-2">Admin Username</label>
                     <div class="relative">

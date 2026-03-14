@@ -53,12 +53,17 @@
             </div>
           </div>
           <div class="flex items-center gap-4">
+              {% if session.get('admin_logged_in') %}
               <button class="glass-btn p-2 rounded-full text-slate-300 hover:text-white">
                   <i data-lucide="bell" class="w-5 h-5"></i>
               </button>
               <div class="h-8 w-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center font-bold text-white shadow-lg">
                   A
               </div>
+              <a href="{{ url_for('logout') }}" class="glass-btn px-3 py-1.5 text-sm rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-2">
+                  <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+              </a>
+              {% endif %}
           </div>
         </div>
       </div>

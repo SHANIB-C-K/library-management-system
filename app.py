@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
+from functools import wraps
 from bson.objectid import ObjectId
 from datetime import datetime
 from config import Config
@@ -14,14 +15,43 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 # ==========================================
-# Dashboard & Auth Routes
+# Authentication Helpers & Routes
 # ==========================================
-@app.route('/login')
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'admin_logged_in' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Render the mock login page for the DBMS lab miniproject."""
+    """Handle the mock login logic for the DBMS lab miniproject."""
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        # Simple hardcoded admin credentials for the scope of the project
+        if username == 'admin' and password == 'password':
+            session['admin_logged_in'] = True
+            return redirect(url_for('dashboard'))
+        else:
+            flash("Invalid credentials. Please use admin / password", "error")
+            
     return render_template('login.html')
 
+@app.route('/logout')
+def logout():
+    """Clear the session and log the user out."""
+    session.clear()
+    return redirect(url_for('login'))
+
+# ==========================================
+# Dashboard Routes
+# ==========================================
 @app.route('/')
+@login_required
 def dashboard():
     """Render the main dashboard with summary statistics."""
     stats = {
@@ -55,6 +85,7 @@ def dashboard():
 # Books Routes (CRUD)
 # ==========================================
 @app.route('/books')
+@login_required
 def books():
     """Display all books."""
     all_books = list(books_collection.aggregate([
@@ -69,6 +100,7 @@ def books():
     return render_template('books.html', books=all_books, categories=all_categories)
 
 @app.route('/books/add', methods=['POST'])
+@login_required
 def add_new_book():
     """Create a new book record."""
     title = request.form.get('title')
@@ -87,6 +119,7 @@ def add_new_book():
     return redirect(url_for('books'))
 
 @app.route('/books/edit/<book_id>', methods=['POST'])
+@login_required
 def edit_book(book_id):
     """Update an existing book record."""
     title = request.form.get('title')
@@ -117,6 +150,7 @@ def edit_book(book_id):
     return redirect(url_for('books'))
 
 @app.route('/books/delete/<book_id>', methods=['POST'])
+@login_required
 def delete_book(book_id):
     """Delete a book record."""
     # Check if book is currently borrowed before deleting (Good practice for DBMS lab)
@@ -135,6 +169,7 @@ def delete_book(book_id):
 # Categories Routes
 # ==========================================
 @app.route('/categories', methods=['POST'])
+@login_required
 def add_category():
     """Create a new category."""
     name = request.form.get('name')
@@ -152,12 +187,14 @@ def add_category():
 # Users Routes (CRUD)
 # ==========================================
 @app.route('/users')
+@login_required
 def users():
     """Display all users."""
     all_users = get_user_list()
     return render_template('users.html', users=all_users)
 
 @app.route('/users/add', methods=['POST'])
+@login_required
 def add_new_user():
     """Create a new user (Member/Student)."""
     name = request.form.get('name')
@@ -171,6 +208,7 @@ def add_new_user():
     return redirect(url_for('users'))
 
 @app.route('/users/delete/<user_id>', methods=['POST'])
+@login_required
 def delete_user(user_id):
     """Delete a user record."""
     users_collection.delete_one({'_id': ObjectId(user_id)})
@@ -180,6 +218,7 @@ def delete_user(user_id):
 # Borrow Routes
 # ==========================================
 @app.route('/borrow')
+@login_required
 def borrow():
     """Display borrow forms and active borrow records."""
     active_borrows = list(borrow_records_collection.aggregate([
@@ -208,6 +247,7 @@ def borrow():
                            users=all_users)
 
 @app.route('/borrow/add', methods=['POST'])
+@login_required
 def issue_book():
     """Issue a book to a user."""
     book_id = request.form.get('book_id')
@@ -227,6 +267,7 @@ def issue_book():
 # Return Routes
 # ==========================================
 @app.route('/return')
+@login_required
 def return_books():
     """Display return forms and return history."""
     return_history = list(returns_collection.aggregate([
@@ -273,6 +314,7 @@ def return_books():
     return render_template('return.html', returns=return_history, active_borrows=active_borrows)
 
 @app.route('/return/add', methods=['POST'])
+@login_required
 def process_return():
     """Process a book return."""
     borrow_id = request.form.get('borrow_id')
